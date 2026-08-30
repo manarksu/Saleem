@@ -4,14 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منصة سليم | نادي الطالبات الرياضي - جامعة الملك سعود</title>
-    <!-- خط Tajawal من Google Fonts -->
+    <!-- خط Tajawal -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <!-- FontAwesome للأيقونات -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- مكتبة Supabase للربط الفعلي بقاعدة البيانات -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
         :root {
-            --primary: #00838F; /* لون أزرق زيتي راقي يرمز للرياضة والصحة */
+            --primary: #00838F;
             --primary-hover: #006064;
             --secondary: #26A69A;
             --accent: #FF7043;
@@ -24,358 +26,69 @@
             --shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Tajawal', sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
+        body { background-color: var(--bg-light); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
 
-        body {
-            background-color: var(--bg-light);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+        header { background-color: var(--card-bg); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
+        .nav-container { max-width: 1200px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; gap: 10px; font-size: 1.5rem; font-weight: 800; color: var(--primary); text-decoration: none; }
+        nav ul { display: flex; list-style: none; gap: 20px; }
+        nav a { text-decoration: none; color: var(--text-main); font-weight: 500; padding: 8px 16px; border-radius: 20px; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; }
+        nav a:hover, nav a.active { background-color: rgba(0, 131, 143, 0.1); color: var(--primary); }
 
-        /* Navbar */
-        header {
-            background-color: var(--card-bg);
-            border-bottom: 1px solid var(--border-color);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-        }
+        .user-profile { display: flex; align-items: center; gap: 12px; }
+        .role-badge { background: #E0F2F1; color: var(--primary); padding: 4px 12px; border-radius: 50px; font-size: 0.85rem; font-weight: bold; }
 
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1rem 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        main { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; flex: 1; width: 100%; }
+        .page-section { display: none; animation: fadeIn 0.4s ease-in-out forwards; }
+        .page-section.active { display: block; }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--primary);
-            text-decoration: none;
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .logo i {
-            font-size: 1.8rem;
-        }
+        .section-header { margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .section-title { font-size: 1.8rem; color: var(--primary); display: flex; align-items: center; gap: 10px; }
 
-        nav ul {
-            display: flex;
-            list-style: none;
-            gap: 20px;
-        }
+        .btn { background-color: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: var(--radius); cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+        .btn:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
+        .btn-outline { background-color: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-outline:hover { background-color: var(--primary); color: white; }
+        .btn-danger { background-color: #E53935; } .btn-danger:hover { background-color: #C62828; }
 
-        nav a {
-            text-decoration: none;
-            color: var(--text-main);
-            font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 20px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .card { background: var(--card-bg); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border-color); transition: transform 0.3s ease; }
+        .card:hover { transform: translateY(-5px); }
 
-        nav a:hover, nav a.active {
-            background-color: rgba(0, 131, 143, 0.1);
-            color: var(--primary);
-        }
+        .filters-bar { background-color: var(--card-bg); padding: 1rem 1.5rem; border-radius: var(--radius); margin-bottom: 2rem; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; box-shadow: var(--shadow); }
+        .filter-group { display: flex; align-items: center; gap: 8px; }
+        select, input { padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; outline: none; }
+        select:focus, input:focus { border-color: var(--primary); }
 
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .slot-card { display: flex; flex-direction: column; justify-content: space-between; gap: 15px; }
+        .slot-header { display: flex; justify-content: space-between; align-items: center; }
+        .sport-tag { background-color: #E0F2F1; color: var(--primary); padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; }
+        .slot-time { font-size: 1.1rem; font-weight: bold; color: var(--text-main); margin: 10px 0; display: flex; align-items: center; gap: 8px; }
 
-        .role-badge {
-            background: #E0F2F1;
-            color: var(--primary);
-            padding: 4px 12px;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            font-weight: bold;
-        }
+        .auth-container { max-width: 450px; margin: 3rem auto; background: var(--card-bg); padding: 2.5rem; border-radius: var(--radius); box-shadow: var(--shadow); }
+        .form-group { margin-bottom: 1.2rem; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
+        .form-group input, .form-group select { width: 100%; }
 
-        /* Container Main */
-        main {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1.5rem;
-            flex: 1;
-            width: 100%;
-        }
+        .alert-info { background-color: #E1F5FE; color: #0288D1; padding: 10px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
 
-        .page-section {
-            display: none;
-            animation: fadeIn 0.4s ease-in-out forwards;
-        }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: var(--card-bg); padding: 2rem; border-radius: var(--radius); width: 90%; max-width: 500px; box-shadow: var(--shadow); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
 
-        .page-section.active {
-            display: block;
-        }
+        .table-responsive { overflow-x: auto; background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); }
+        table { width: 100%; border-collapse: collapse; text-align: right; }
+        th, td { padding: 1rem; border-bottom: 1px solid var(--border-color); }
+        th { background-color: #F9FBFB; color: var(--primary); }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Common Elements */
-        .section-header {
-            margin-bottom: 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .section-title {
-            font-size: 1.8rem;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: var(--radius);
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-        }
-
-        .btn:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-2px);
-        }
-
-        .btn-outline {
-            background-color: transparent;
-            border: 2px solid var(--primary);
-            color: var(--primary);
-        }
-
-        .btn-outline:hover {
-            background-color: var(--primary);
-            color: white;
-        }
-
-        .btn-danger {
-            background-color: #E53935;
-        }
-        .btn-danger:hover {
-            background-color: #C62828;
-        }
-
-        /* Grid Cards */
-        .grid-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 1.5rem;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-            transition: transform 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-        }
-
-        /* Filters */
-        .filters-bar {
-            background-color: var(--card-bg);
-            padding: 1rem 1.5rem;
-            border-radius: var(--radius);
-            margin-bottom: 2rem;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-            box-shadow: var(--shadow);
-        }
-
-        .filter-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        select, input {
-            padding: 10px 14px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 0.95rem;
-            outline: none;
-        }
-
-        select:focus, input:focus {
-            border-color: var(--primary);
-        }
-
-        /* Court Booking Slots */
-        .slot-card {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            gap: 15px;
-        }
-
-        .slot-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .sport-tag {
-            background-color: #E0F2F1;
-            color: var(--primary);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: bold;
-        }
-
-        .slot-time {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: var(--text-main);
-            margin: 10px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* Auth Form */
-        .auth-container {
-            max-width: 450px;
-            margin: 3rem auto;
-            background: var(--card-bg);
-            padding: 2.5rem;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-        }
-
-        .form-group {
-            margin-bottom: 1.2rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        .form-group input, .form-group select {
-            width: 100%;
-        }
-
-        .alert-info {
-            background-color: #E1F5FE;
-            color: #0288D1;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            padding: 2rem;
-            border-radius: var(--radius);
-            width: 90%;
-            max-width: 500px;
-            box-shadow: var(--shadow);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        /* Table */
-        .table-responsive {
-            overflow-x: auto;
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: right;
-        }
-
-        th, td {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        th {
-            background-color: #F9FBFB;
-            color: var(--primary);
-        }
-
-        /* Footer */
-        footer {
-            background-color: var(--card-bg);
-            border-top: 1px solid var(--border-color);
-            text-align: center;
-            padding: 1.5rem;
-            margin-top: auto;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
+        footer { background-color: var(--card-bg); border-top: 1px solid var(--border-color); text-align: center; padding: 1.5rem; margin-top: auto; color: var(--text-muted); font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
-    <!-- الهيدر وشريط التنقل -->
     <header>
         <div class="nav-container">
             <a href="#" class="logo" onclick="switchTab('booking')">
@@ -391,21 +104,20 @@
             </nav>
             <div class="user-profile" id="user-profile" style="display: none;">
                 <span class="role-badge" id="user-role-badge">طالبة</span>
-                <span id="user-display-name">نورة السلمان</span>
+                <span id="user-display-name">طالبة جامعة الملك سعود</span>
                 <button class="btn btn-outline" style="padding: 5px 10px; font-size: 0.85rem;" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
             </div>
         </div>
     </header>
 
     <main>
-        <!-- 1. شاشة تسجيل الدخول وإنشاء حساب (BRD01) -->
+        <!-- 1. شاشة تسجيل الدخول وإنشاء حساب -->
         <section id="auth-section" class="page-section active">
             <div class="auth-container">
                 <h2 style="text-align: center; color: var(--primary); margin-bottom: 1.5rem;" id="auth-title">تسجيل الدخول - منصة سليم</h2>
-                
                 <div class="alert-info">
                     <i class="fa-solid fa-circle-info"></i>
-                    يجب استخدام البريد الجامعي الرسمي (@ksu.edu.sa) للتحقق المباشر.
+                    التحقق التلقائي للبريد الجامعي (@ksu.edu.sa)
                 </div>
 
                 <form id="auth-form" onsubmit="handleAuth(event)">
@@ -421,30 +133,27 @@
                         <label>كلمة المرور</label>
                         <input type="password" id="auth-password" required minlength="6" placeholder="******">
                     </div>
-                    
                     <button type="submit" class="btn" style="width: 100%; justify-content: center;" id="auth-submit-btn">دخول</button>
                 </form>
-
                 <p style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem;">
                     <span id="auth-toggle-text">ليس لديك حساب؟</span>
                     <a href="#" style="color: var(--primary); font-weight: bold;" onclick="toggleAuthMode()">انشئي حساباً الآن</a>
                 </p>
                 <div style="text-align: center; margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
-                    <small style="color: var(--text-muted);">للتجربة بصلاحية الإدارة: استخدمي بريد admin@ksu.edu.sa</small>
+                    <small style="color: var(--text-muted);">للدخول كمسؤولة نادي: استخدمي بريد admin@ksu.edu.sa</small>
                 </div>
             </div>
         </section>
 
-        <!-- 2. شاشة جدول الأوقات المتاحة وحجز الملاعب (BRD02) -->
+        <!-- 2. جدول الملاعب -->
         <section id="booking-section" class="page-section">
             <div class="section-header">
                 <h2 class="section-title"><i class="fa-solid fa-calendar-check"></i> الملاعب والأوقات المتاحة</h2>
             </div>
-
             <div class="filters-bar">
                 <div class="filter-group">
                     <label><i class="fa-solid fa-filter"></i> الرياضة:</label>
-                    <select id="filter-sport" onchange="filterSlots()">
+                    <select id="filter-sport" onchange="fetchAndRenderSlots()">
                         <option value="all">جميع الرياضات</option>
                         <option value="تنس">كرة المضرب (تنس)</option>
                         <option value="كرة سلة">كرة السلة</option>
@@ -453,7 +162,7 @@
                 </div>
                 <div class="filter-group">
                     <label><i class="fa-solid fa-calendar"></i> اليوم:</label>
-                    <select id="filter-day" onchange="filterSlots()">
+                    <select id="filter-day" onchange="fetchAndRenderSlots()">
                         <option value="all">جميع الأيام</option>
                         <option value="الأحد">الأحد</option>
                         <option value="الإثنين">الإثنين</option>
@@ -463,41 +172,32 @@
                     </select>
                 </div>
             </div>
-
-            <div class="grid-cards" id="slots-grid">
-                <!-- يتم توليد كروت الأوقات المتاحة بواسطة JavaScript -->
-            </div>
+            <div class="grid-cards" id="slots-grid"></div>
         </section>
 
-        <!-- 3. شاشة الفرق والمجتمعات (BRD03) -->
+        <!-- 3. الفرق والمجتمعات -->
         <section id="community-section" class="page-section">
             <div class="section-header">
                 <h2 class="section-title"><i class="fa-solid fa-users-gear"></i> تشكيل الفرق والمجتمعات</h2>
                 <button class="btn" onclick="openModal('create-team-modal')"><i class="fa-solid fa-plus"></i> إنشاء طلب فريق</button>
             </div>
-
-            <div class="grid-cards" id="teams-grid">
-                <!-- يتم توليد طلبات الفرق بواسطة JavaScript -->
-            </div>
+            <div class="grid-cards" id="teams-grid"></div>
         </section>
 
-        <!-- 4. شاشة حجوزاتي (My Bookings) -->
+        <!-- 4. حجوزاتي -->
         <section id="my-bookings-section" class="page-section">
             <div class="section-header">
                 <h2 class="section-title"><i class="fa-solid fa-ticket"></i> حجوزاتي الحالية</h2>
             </div>
-            <div class="grid-cards" id="my-bookings-grid">
-                <!-- الحجوزات الخاصة بالطالبة -->
-            </div>
+            <div class="grid-cards" id="my-bookings-grid"></div>
         </section>
 
-        <!-- 5. لوحة الإدارة المبسطة (BRD04 & BRD05) -->
+        <!-- 5. لوحة الإدارة -->
         <section id="admin-section" class="page-section">
             <div class="section-header">
                 <h2 class="section-title"><i class="fa-solid fa-sliders"></i> لوحة إدارة النادي</h2>
                 <button class="btn" onclick="openModal('add-slot-modal')"><i class="fa-solid fa-calendar-plus"></i> إضافة وقت متاح جديد</button>
             </div>
-
             <div class="table-responsive">
                 <h3 style="padding: 1rem; color: var(--primary);">إدارة الأوقات والملاعب المتاحة</h3>
                 <table>
@@ -510,17 +210,13 @@
                             <th>الإجراءات</th>
                         </tr>
                     </thead>
-                    <tbody id="admin-slots-table">
-                        <!-- جدول الأوقات للإدارة -->
-                    </tbody>
+                    <tbody id="admin-slots-table"></tbody>
                 </table>
             </div>
         </section>
     </main>
 
-    <!-- Modals (النوافذ المنبثقة) -->
-
-    <!-- نافذة إنشاء طلب فريق جديد -->
+    <!-- Modal إنشاء طلب فريق -->
     <div class="modal" id="create-team-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -553,7 +249,7 @@
         </div>
     </div>
 
-    <!-- نافذة إضافة وقت متاح جديد (للإدارة) -->
+    <!-- Modal إضافة وقت متاح -->
     <div class="modal" id="add-slot-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -567,6 +263,7 @@
                         <option value="كرة سلة - ملعب A">كرة سلة - ملعب A</option>
                         <option value="كرة طائرة - الملعب الرئيسي">كرة طائرة - الملعب الرئيسي</option>
                         <option value="تنس - ملعب 1">تنس - ملعب 1</option>
+                        <option value="تنس - ملعب 2">تنس - ملعب 2</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -592,27 +289,15 @@
         <p>جميع الحقوق محفوظة منصة سليم © 2026 - نادي الطالبات الرياضي بجامعة الملك سعود</p>
     </footer>
 
-    <!-- JavaScript Logic -->
     <script>
-        // State Management - إدارة البيانات المؤقتة
+        // === إعدادات Supabase Backend ===
+        const SUPABASE_URL = 'https://milvueldmckhgyjngviw.supabase.co/rest/v1/'; // 
+        const SUPABASE_ANON_KEY = 'sb_publishable_AwrrvUEr1vhCX4TWKPNLhw_uxFU7b-S'; // 
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         let currentUser = null;
         let isSignupMode = false;
 
-        // البيانات المبدئية للأوقات المتاحة
-        let slots = [
-            { id: 1, sport: 'تنس', court: 'تنس - ملعب 1', day: 'الأحد', time: '04:00 م - 05:00 م', isBooked: false, bookedBy: null },
-            { id: 2, sport: 'كرة سلة', court: 'كرة سلة - ملعب A', day: 'الإثنين', time: '05:00 م - 06:00 م', isBooked: false, bookedBy: null },
-            { id: 3, sport: 'كرة طائرة', court: 'كرة طائرة - الملعب الرئيسي', day: 'الثلاثاء', time: '03:00 م - 04:00 م', isBooked: false, bookedBy: null },
-            { id: 4, sport: 'تنس', court: 'تنس - ملعب 2', day: 'الأربعاء', time: '06:00 م - 07:00 م', isBooked: false, bookedBy: null }
-        ];
-
-        // البيانات المبدئية لطلبات الفرق
-        let teams = [
-            { id: 1, sport: 'كرة سلة', time: 'الثلاثاء 5:00 مساءً', needed: 3, joined: 1, link: 'https://chat.whatsapp.com/demo1', author: 'سارة العتيبي' },
-            { id: 2, sport: 'كرة طائرة', time: 'الخميس 4:00 مساءً', needed: 4, joined: 2, link: 'https://t.me/demo2', author: 'ريما الشهري' }
-        ];
-
-        // Auth handling
         function toggleAuthMode() {
             isSignupMode = !isSignupMode;
             document.getElementById('auth-title').innerText = isSignupMode ? 'إنشاء حساب جديد - منصة سليم' : 'تسجيل الدخول - منصة سليم';
@@ -621,40 +306,27 @@
             document.getElementById('auth-toggle-text').innerText = isSignupMode ? 'لديك حساب بالفعل؟' : 'ليس لديك حساب؟';
         }
 
-        function handleAuth(e) {
+        async function handleAuth(e) {
             e.preventDefault();
             const email = document.getElementById('auth-email').value;
             const name = isSignupMode ? document.getElementById('auth-name').value : email.split('@')[0];
 
-            // التحقق من البريد الجامعي ksu.edu.sa
             if (!email.endsWith('@ksu.edu.sa')) {
-                alert('عذراً، يجب تسجيل الدخول باستخدام البريد الجامعي المعتمد (@ksu.edu.sa)');
+                alert('عذراً، يجب تسجيل الدخول باستخدام البريد الجامعي الرسمي (@ksu.edu.sa)');
                 return;
             }
 
             const isAdmin = email.startsWith('admin');
+            currentUser = { name: name || 'طالبة بجامعة الملك سعود', email: email, role: isAdmin ? 'admin' : 'student' };
 
-            currentUser = {
-                name: name || 'طالبة بجامعة الملك سعود',
-                email: email,
-                role: isAdmin ? 'admin' : 'student'
-            };
-
-            // إظهار عناصر واجهة الموظفة أو الطالبة
             document.getElementById('main-nav').style.display = 'block';
             document.getElementById('user-profile').style.display = 'flex';
             document.getElementById('user-display-name').innerText = currentUser.name;
             document.getElementById('user-role-badge').innerText = isAdmin ? 'إدارة النادي' : 'طالبة';
-            
-            if(isAdmin) {
-                document.getElementById('admin-link').style.display = 'block';
-            } else {
-                document.getElementById('admin-link').style.display = 'none';
-            }
+            document.getElementById('admin-link').style.display = isAdmin ? 'block' : 'none';
 
-            // التوجه للشاشة المناسبة
-            renderSlots();
-            renderTeams();
+            fetchAndRenderSlots();
+            fetchAndRenderTeams();
             switchTab('booking');
         }
 
@@ -665,7 +337,6 @@
             switchTab('auth');
         }
 
-        // Navigation Tabs
         function switchTab(tabName) {
             document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('nav a').forEach(el => el.classList.remove('active'));
@@ -674,35 +345,38 @@
                 document.getElementById('auth-section').classList.add('active');
             } else {
                 document.getElementById(`${tabName}-section`).classList.add('active');
-                if(document.getElementById(`nav-${tabName}`)) {
+                if (document.getElementById(`nav-${tabName}`)) {
                     document.getElementById(`nav-${tabName}`).classList.add('active');
                 }
             }
 
-            if(tabName === 'my-bookings') renderMyBookings();
-            if(tabName === 'admin') renderAdminPage();
+            if (tabName === 'my-bookings') fetchAndRenderMyBookings();
+            if (tabName === 'admin') fetchAndRenderAdminPage();
         }
 
-        // Slots & Booking Functions
-        function renderSlots() {
+        // === استعلامات وتفاعل قاعدة البيانات Supabase Real Database Operations ===
+
+        async function fetchAndRenderSlots() {
             const grid = document.getElementById('slots-grid');
+            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">جاري جلب البيانات من Supabase...</p>';
+
             const sportFilter = document.getElementById('filter-sport').value;
             const dayFilter = document.getElementById('filter-day').value;
 
-            grid.innerHTML = '';
+            let query = supabase.from('slots').select('*').eq('is_booked', false);
 
-            const filteredSlots = slots.filter(s => {
-                const matchSport = (sportFilter === 'all' || s.sport === sportFilter);
-                const matchDay = (dayFilter === 'all' || s.day === dayFilter);
-                return matchSport && matchDay && !s.isBooked;
-            });
+            if (sportFilter !== 'all') query = query.eq('sport', sportFilter);
+            if (dayFilter !== 'all') query = query.eq('day', dayFilter);
 
-            if (filteredSlots.length === 0) {
+            const { data, error } = await query;
+
+            if (error || !data || data.length === 0) {
                 grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">لا توجد أوقات متاحة تنطبق مع خيارات البحث.</p>`;
                 return;
             }
 
-            filteredSlots.forEach(slot => {
+            grid.innerHTML = '';
+            data.forEach(slot => {
                 grid.innerHTML += `
                     <div class="card slot-card">
                         <div>
@@ -721,33 +395,36 @@
             });
         }
 
-        function filterSlots() {
-            renderSlots();
-        }
+        async function bookSlot(slotId) {
+            const { error } = await supabase
+                .from('slots')
+                .update({ is_booked: true, booked_by: currentUser.email })
+                .eq('id', slotId);
 
-        function bookSlot(slotId) {
-            const slot = slots.find(s => s.id === slotId);
-            if (slot) {
-                slot.isBooked = true;
-                slot.bookedBy = currentUser.email;
-                alert(`تم حجز ${slot.court} بنجاح يوم ${slot.day} الساعة ${slot.time}.`);
-                renderSlots();
+            if (error) {
+                alert('حدث خطأ أثناء الحجز، يرجى المحاولة مرة أخرى.');
+            } else {
+                alert('تم حفظ حجزك في قاعدة البيانات بنجاح!');
+                fetchAndRenderSlots();
             }
         }
 
-        // My Bookings
-        function renderMyBookings() {
+        async function fetchAndRenderMyBookings() {
             const grid = document.getElementById('my-bookings-grid');
-            grid.innerHTML = '';
+            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">جاري تحضير حجوزاتك...</p>';
 
-            const myBookings = slots.filter(s => s.bookedBy === currentUser.email);
+            const { data, error } = await supabase
+                .from('slots')
+                .select('*')
+                .eq('booked_by', currentUser.email);
 
-            if (myBookings.length === 0) {
+            if (error || !data || data.length === 0) {
                 grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">ليس لديكِ حجوزات قائمة حالياً.</p>`;
                 return;
             }
 
-            myBookings.forEach(slot => {
+            grid.innerHTML = '';
+            data.forEach(slot => {
                 grid.innerHTML += `
                     <div class="card slot-card">
                         <div>
@@ -766,24 +443,32 @@
             });
         }
 
-        function cancelBooking(slotId) {
+        async function cancelBooking(slotId) {
             if (confirm('هل أنتِ متأكدة من إلغاء هذا الحجز؟')) {
-                const slot = slots.find(s => s.id === slotId);
-                if (slot) {
-                    slot.isBooked = false;
-                    slot.bookedBy = null;
-                    renderMyBookings();
-                    renderSlots();
+                const { error } = await supabase
+                    .from('slots')
+                    .update({ is_booked: false, booked_by: null })
+                    .eq('id', slotId);
+
+                if (!error) {
+                    fetchAndRenderMyBookings();
                 }
             }
         }
 
-        // Community & Teams
-        function renderTeams() {
+        async function fetchAndRenderTeams() {
             const grid = document.getElementById('teams-grid');
-            grid.innerHTML = '';
+            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">جاري تحميل طلبات الفرق...</p>';
 
-            teams.forEach(team => {
+            const { data, error } = await supabase.from('teams').select('*');
+
+            if (error || !data || data.length === 0) {
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">لا توجد طلبات فرق حالياً.</p>`;
+                return;
+            }
+
+            grid.innerHTML = '';
+            data.forEach(team => {
                 grid.innerHTML += `
                     <div class="card">
                         <div class="slot-header">
@@ -792,7 +477,7 @@
                         </div>
                         <h4 style="margin: 10px 0;"><i class="fa-regular fa-clock"></i> ${team.time}</h4>
                         <p style="margin-bottom: 15px; font-size: 0.95rem;">المطلوب: <strong>${team.needed} لاعبات</strong> (انضم ${team.joined})</p>
-                        <a href="${team.link}" target="_blank" class="btn btn-outline" style="width: 100%; justify-content: center;" onclick="joinTeam(${team.id})">
+                        <a href="${team.link}" target="_blank" class="btn btn-outline" style="width: 100%; justify-content: center;" onclick="joinTeam(${team.id}, ${team.joined})">
                             <i class="fa-brands fa-whatsapp"></i> الانضمام للمجموعة
                         </a>
                     </div>
@@ -800,18 +485,14 @@
             });
         }
 
-        function joinTeam(teamId) {
-            const team = teams.find(t => t.id === teamId);
-            if (team && team.joined < team.needed) {
-                team.joined++;
-                renderTeams();
-            }
+        async function joinTeam(teamId, currentJoined) {
+            await supabase.from('teams').update({ joined: currentJoined + 1 }).eq('id', teamId);
+            fetchAndRenderTeams();
         }
 
-        function handleCreateTeam(e) {
+        async function handleCreateTeam(e) {
             e.preventDefault();
             const newTeam = {
-                id: teams.length + 1,
                 sport: document.getElementById('team-sport').value,
                 time: document.getElementById('team-time').value,
                 needed: parseInt(document.getElementById('team-count').value),
@@ -820,24 +501,29 @@
                 author: currentUser.name
             };
 
-            teams.push(newTeam);
-            closeModal('create-team-modal');
-            renderTeams();
-            alert('تم نشر طلب الفريق بنجاح!');
+            const { error } = await supabase.from('teams').insert([newTeam]);
+            if (!error) {
+                closeModal('create-team-modal');
+                fetchAndRenderTeams();
+                alert('تم نشر طلب الفريق وتخزينه في قاعدة البيانات بنجاح!');
+            }
         }
 
-        // Admin Management
-        function renderAdminPage() {
+        async function fetchAndRenderAdminPage() {
             const tbody = document.getElementById('admin-slots-table');
-            tbody.innerHTML = '';
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">جاري تحميل البيانات...</td></tr>';
 
-            slots.forEach(slot => {
+            const { data, error } = await supabase.from('slots').select('*');
+            if (error || !data) return;
+
+            tbody.innerHTML = '';
+            data.forEach(slot => {
                 tbody.innerHTML += `
                     <tr>
                         <td><strong>${slot.court}</strong></td>
                         <td>${slot.day}</td>
                         <td>${slot.time}</td>
-                        <td>${slot.isBooked ? `<span style="color: red;">محجوز (${slot.bookedBy})</span>` : `<span style="color: green;">متاح</span>`}</td>
+                        <td>${slot.is_booked ? `<span style="color: red;">محجوز (${slot.booked_by || 'طالبة'})</span>` : `<span style="color: green;">متاح</span>`}</td>
                         <td>
                             <button class="btn btn-danger" style="padding: 5px 10px; font-size: 0.8rem;" onclick="deleteSlot(${slot.id})">
                                 <i class="fa-solid fa-trash"></i> حذف
@@ -848,44 +534,36 @@
             });
         }
 
-        function handleAddSlot(e) {
+        async function handleAddSlot(e) {
             e.preventDefault();
             const court = document.getElementById('slot-sport').value;
             const sport = court.split(' - ')[0];
 
             const newSlot = {
-                id: slots.length + 1,
                 sport: sport,
                 court: court,
                 day: document.getElementById('slot-day').value,
                 time: document.getElementById('slot-time-str').value,
-                isBooked: false,
-                bookedBy: null
+                is_booked: false
             };
 
-            slots.push(newSlot);
-            closeModal('add-slot-modal');
-            renderAdminPage();
-            renderSlots();
-            alert('تم إضافة الوقت المتاح بنجاح!');
-        }
-
-        function deleteSlot(id) {
-            if(confirm('هل تريدين حذف هذا الوقت من الجدول؟')) {
-                slots = slots.filter(s => s.id !== id);
-                renderAdminPage();
-                renderSlots();
+            const { error } = await supabase.from('slots').insert([newSlot]);
+            if (!error) {
+                closeModal('add-slot-modal');
+                fetchAndRenderAdminPage();
+                alert('تم إضافة الوقت المتاح في قاعدة البيانات بنجاح!');
             }
         }
 
-        // Modal Controls
-        function openModal(modalId) {
-            document.getElementById(modalId).style.display = 'flex';
+        async function deleteSlot(id) {
+            if (confirm('هل تريدين حذف هذا الوقت من قاعدة البيانات؟')) {
+                await supabase.from('slots').delete().eq('id', id);
+                fetchAndRenderAdminPage();
+            }
         }
 
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
+        function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
+        function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
     </script>
 </body>
 </html>
