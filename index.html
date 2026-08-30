@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منصة سليم | نادي الطالبات الرياضي - جامعة الملك سعود</title>
-    <!-- خط Tajawal -->
+    
+    <!-- الخط والأيقونات -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <!-- FontAwesome للأيقونات -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- مكتبة Supabase للربط الفعلي بقاعدة البيانات -->
+    
+    <!-- مكتبة Supabase (استدعاء واحد صحيح) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
@@ -140,9 +140,6 @@
                     <span id="auth-toggle-text">ليس لديك حساب؟</span>
                     <a href="#" style="color: var(--primary); font-weight: bold;" onclick="toggleAuthMode()">انشئي حساباً الآن</a>
                 </p>
-                <div style="text-align: center; margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
-                    <small style="color: var(--text-muted);">للدخول كمسؤولة نادي: استخدمي بريد admin@ksu.edu.sa</small>
-                </div>
             </div>
         </section>
 
@@ -292,9 +289,9 @@
 
     <script>
         // === إعدادات Supabase Backend ===
-        const SUPABASE_URL = 'https://milvueldmckhgyjngviw.supabase.co/rest/v1/'; // 
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pbHZ1ZWxkbWNraGd5am5ndml3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwNjU2ODMsImV4cCI6MjEwMzY0MTY4M30.Dqk4fC896S1myrkwPaxERJ2-DxjzonM9qJFqU4zUNAM'; // 
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const SUPABASE_URL = "https://milvueldmckhgyjngviw.supabase.co/rest/v1/"; 
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pbHZ1ZWxkbWNraGd5am5ndml3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwNjU2ODMsImV4cCI6MjEwMzY0MTY4M30.Dqk4fC896S1myrkwPaxERJ2-DxjzonM9qJFqU4zUNAM"; 
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentUser = null;
         let isSignupMode = false;
@@ -310,10 +307,30 @@
         async function handleAuth(e) {
             e.preventDefault();
             const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
             const name = isSignupMode ? document.getElementById('auth-name').value : email.split('@')[0];
 
             if (!email.endsWith('@ksu.edu.sa')) {
                 alert('عذراً، يجب تسجيل الدخول باستخدام البريد الجامعي الرسمي (@ksu.edu.sa)');
+                return;
+            }
+
+            let response;
+            if (isSignupMode) {
+                response = await supabaseClient.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: { data: { full_name: name } }
+                });
+            } else {
+                response = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+            }
+
+            if (response.error) {
+                alert('حدث خطأ في المصادقة: ' + response.error.message);
                 return;
             }
 
@@ -332,6 +349,7 @@
         }
 
         function logout() {
+            supabaseClient.auth.signOut();
             currentUser = null;
             document.getElementById('main-nav').style.display = 'none';
             document.getElementById('user-profile').style.display = 'none';
@@ -355,8 +373,6 @@
             if (tabName === 'admin') fetchAndRenderAdminPage();
         }
 
-        // === استعلامات وتفاعل قاعدة البيانات Supabase Real Database Operations ===
-
         async function fetchAndRenderSlots() {
             const grid = document.getElementById('slots-grid');
             grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">جاري جلب البيانات من Supabase...</p>';
@@ -364,7 +380,7 @@
             const sportFilter = document.getElementById('filter-sport').value;
             const dayFilter = document.getElementById('filter-day').value;
 
-            let query = supabase.from('slots').select('*').eq('is_booked', false);
+            let query = supabaseClient.from('slots').select('*').eq('is_booked', false);
 
             if (sportFilter !== 'all') query = query.eq('sport', sportFilter);
             if (dayFilter !== 'all') query = query.eq('day', dayFilter);
@@ -397,7 +413,7 @@
         }
 
         async function bookSlot(slotId) {
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('slots')
                 .update({ is_booked: true, booked_by: currentUser.email })
                 .eq('id', slotId);
@@ -414,7 +430,7 @@
             const grid = document.getElementById('my-bookings-grid');
             grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">جاري تحضير حجوزاتك...</p>';
 
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('slots')
                 .select('*')
                 .eq('booked_by', currentUser.email);
@@ -446,7 +462,7 @@
 
         async function cancelBooking(slotId) {
             if (confirm('هل أنتِ متأكدة من إلغاء هذا الحجز؟')) {
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('slots')
                     .update({ is_booked: false, booked_by: null })
                     .eq('id', slotId);
@@ -461,7 +477,7 @@
             const grid = document.getElementById('teams-grid');
             grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">جاري تحميل طلبات الفرق...</p>';
 
-            const { data, error } = await supabase.from('teams').select('*');
+            const { data, error } = await supabaseClient.from('teams').select('*');
 
             if (error || !data || data.length === 0) {
                 grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">لا توجد طلبات فرق حالياً.</p>`;
@@ -487,7 +503,7 @@
         }
 
         async function joinTeam(teamId, currentJoined) {
-            await supabase.from('teams').update({ joined: currentJoined + 1 }).eq('id', teamId);
+            await supabaseClient.from('teams').update({ joined: currentJoined + 1 }).eq('id', teamId);
             fetchAndRenderTeams();
         }
 
@@ -502,7 +518,7 @@
                 author: currentUser.name
             };
 
-            const { error } = await supabase.from('teams').insert([newTeam]);
+            const { error } = await supabaseClient.from('teams').insert([newTeam]);
             if (!error) {
                 closeModal('create-team-modal');
                 fetchAndRenderTeams();
@@ -514,7 +530,7 @@
             const tbody = document.getElementById('admin-slots-table');
             tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">جاري تحميل البيانات...</td></tr>';
 
-            const { data, error } = await supabase.from('slots').select('*');
+            const { data, error } = await supabaseClient.from('slots').select('*');
             if (error || !data) return;
 
             tbody.innerHTML = '';
@@ -548,7 +564,7 @@
                 is_booked: false
             };
 
-            const { error } = await supabase.from('slots').insert([newSlot]);
+            const { error } = await supabaseClient.from('slots').insert([newSlot]);
             if (!error) {
                 closeModal('add-slot-modal');
                 fetchAndRenderAdminPage();
@@ -558,7 +574,7 @@
 
         async function deleteSlot(id) {
             if (confirm('هل تريدين حذف هذا الوقت من قاعدة البيانات؟')) {
-                await supabase.from('slots').delete().eq('id', id);
+                await supabaseClient.from('slots').delete().eq('id', id);
                 fetchAndRenderAdminPage();
             }
         }
