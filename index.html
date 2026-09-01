@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- مكتبة Supabase -->
+    <!-- مكتبة Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
@@ -128,7 +128,7 @@
                     </div>
                     <div class="form-group">
                         <label>البريد الإلكتروني الجامعي</label>
-                        <!-- اصلاح الخاصية pattern لمنع خطأ المتصفح -->
+                        <!-- تم إصلاح صيغة pattern بإزالة السلاش المتسبب للخطأ -->
                         <input type="email" id="auth-email" placeholder="example@ksu.edu.sa" required pattern="^[a-zA-Z0-9._%+-]+@ksu\.edu\.sa$" title="يرجى إدخال بريد إلكتروني ينتهي بـ @ksu.edu.sa">
                     </div>
                     <div class="form-group">
@@ -292,15 +292,11 @@
     </footer>
 
     <script>
-        // التأكد من عدم إرجاع إعادة تعريف Supabase
+        // إعداد العميل باسم فريد (supabaseClient) لمنع التعارض مع اسم المكتبة في الـ CDN
         const SUPABASE_URL = "https://milvueldmckhgyjngviw.supabase.co"; 
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pbHZ1ZWxkbWNraGd5am5ndml3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwNjU2ODMsImV4cCI6IZEwMzY0MTY4M30.Dqk4fC896S1myrkwPaxERJ2-DxjzonM9qJFqU4zUNAM"; 
         
-        let supabaseClient = window.supabaseClient;
-        if (!supabaseClient) {
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            window.supabaseClient = supabaseClient;
-        }
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentUser = null;
         let isSignupMode = false;
