@@ -581,6 +581,89 @@
 
         function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
         function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
+        // متغير لمتابعة الحالة (تسجيل دخول أم إنشاء حساب)
+let isSignUpMode = false;
+
+// دالة التبديل بين وضع الدخول ووضع إنشاء الحساب
+function toggleAuthMode() {
+    isSignUpMode = !isSignUpMode;
+    const title = document.getElementById('auth-title');
+    const submitBtn = document.getElementById('auth-submit-btn');
+    const toggleText = document.getElementById('auth-toggle-text');
+    const toggleLink = document.querySelector('#auth-section a');
+    const nameGroup = document.getElementById('name-group');
+
+    if (isSignUpMode) {
+        title.innerText = 'إنشاء حساب جديد - منصة سليم';
+        submitBtn.innerText = 'إنشاء حساب';
+        toggleText.innerText = 'لديك حساب بالفعل؟';
+        toggleLink.innerText = 'سجلي الدخول الآن';
+        nameGroup.style.display = 'block';
+    } else {
+        title.innerText = 'تسجيل الدخول - منصة سليم';
+        submitBtn.innerText = 'دخول';
+        toggleText.innerText = 'ليس لديك حساب؟';
+        toggleLink.innerText = 'انشئي حساباً الآن';
+        nameGroup.style.display = 'none';
+    }
+}
+
+// دالة معالجة النموذج عند الضغط على الزر (handleAuth)
+async function handleAuth(event) {
+    event.preventDefault(); // منع إعادة تحميل الصفحة
+
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-password').value;
+    const name = document.getElementById('auth-name').value;
+
+    if (isSignUpMode) {
+        // إنشاء حساب جديد
+        try {
+            const { data, error } = await supabase.auth.signUp({
+                email: email,
+                password: password,
+                options: {
+                    data: { full_name: name } // حفظ الاسم الكامل في بيانات المستخدم
+                }
+            });
+
+            if (error) throw error;
+
+            alert('تم إنشاء الحساب بنجاح!');
+            console.log('تم التسجيل:', data);
+            
+            // إعادة النموذج لوضع تسجيل الدخول
+            toggleAuthMode();
+        } catch (err) {
+            alert('خطأ في إنشاء الحساب: ' + err.message);
+            console.error(err);
+        }
+    } else {
+        // تسجيل الدخول
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+            if (error) throw error;
+
+            alert('تم تسجيل الدخول بنجاح!');
+            console.log('تم تسجيل الدخول:', data);
+
+            // إخفاء واجهة Auth وإظهار أقسام المنصة
+            document.getElementById('auth-section').classList.remove('active');
+            
+            // التوجيه إلى القسم الرئيسي (مثلاً قسم الحجوزات)
+            const mainSection = document.getElementById('slots-section') || document.querySelector('.page-section');
+            if (mainSection) mainSection.classList.add('active');
+
+        } catch (err) {
+            alert('فشل تسجيل الدخول: ' + err.message);
+            console.error(err);
+        }
+    }
+}
     </script>
 </body>
 </html>
