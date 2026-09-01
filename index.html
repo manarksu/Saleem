@@ -128,7 +128,8 @@
                     </div>
                     <div class="form-group">
                         <label>البريد الإلكتروني الجامعي</label>
-                        <input type="email" id="auth-email" placeholder="example@ksu.edu.sa" required pattern="[a-zA-Z0-9._%+-]+@ksu\.edu\.sa$" title="يرجى إدخال بريد إلكتروني ينتهي بـ @ksu.edu.sa">
+                        <!-- اصلاح الخاصية pattern لمنع خطأ المتصفح -->
+                        <input type="email" id="auth-email" placeholder="example@ksu.edu.sa" required pattern="^[a-zA-Z0-9._%+-]+@ksu\.edu\.sa$" title="يرجى إدخال بريد إلكتروني ينتهي بـ @ksu.edu.sa">
                     </div>
                     <div class="form-group">
                         <label>كلمة المرور</label>
@@ -291,10 +292,15 @@
     </footer>
 
     <script>
-        // === إعدادات Supabase Backend ===
+        // التأكد من عدم إرجاع إعادة تعريف Supabase
         const SUPABASE_URL = "https://milvueldmckhgyjngviw.supabase.co"; 
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pbHZ1ZWxkbWNraGd5am5ndml3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwNjU2ODMsImV4cCI6MjEwMzY0MTY4M30.Dqk4fC896S1myrkwPaxERJ2-DxjzonM9qJFqU4zUNAM"; 
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pbHZ1ZWxkbWNraGd5am5ndml3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwNjU2ODMsImV4cCI6IZEwMzY0MTY4M30.Dqk4fC896S1myrkwPaxERJ2-DxjzonM9qJFqU4zUNAM"; 
+        
+        let supabaseClient = window.supabaseClient;
+        if (!supabaseClient) {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            window.supabaseClient = supabaseClient;
+        }
 
         let currentUser = null;
         let isSignupMode = false;
@@ -320,13 +326,13 @@
 
             let authResult;
             if (isSignupMode) {
-                authResult = await supabase.auth.signUp({ 
+                authResult = await supabaseClient.auth.signUp({ 
                     email: email, 
                     password: password,
                     options: { data: { full_name: name } }
                 });
             } else {
-                authResult = await supabase.auth.signInWithPassword({ email: email, password: password });
+                authResult = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
             }
 
             if (authResult.error) {
@@ -349,7 +355,7 @@
         }
 
         function logout() {
-            supabase.auth.signOut();
+            supabaseClient.auth.signOut();
             currentUser = null;
             document.getElementById('main-nav').style.display = 'none';
             document.getElementById('user-profile').style.display = 'none';
@@ -375,12 +381,12 @@
 
         async function fetchAndRenderSlots() {
             const grid = document.getElementById('slots-grid');
-            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">جاري جلب البيانات من Supabase...</p>';
+            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">جاري جلب البيانات...</p>';
 
             const sportFilter = document.getElementById('filter-sport').value;
             const dayFilter = document.getElementById('filter-day').value;
 
-            let query = supabase.from('slots').select('*').eq('is_booked', false);
+            let query = supabaseClient.from('slots').select('*').eq('is_booked', false);
 
             if (sportFilter !== 'all') query = query.eq('sport', sportFilter);
             if (dayFilter !== 'all') query = query.eq('day', dayFilter);
@@ -388,7 +394,7 @@
             const { data, error } = await query;
 
             if (error || !data || data.length === 0) {
-                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">لا توجد أوقات متاحة تنطبق مع خيارات البحث.</p>`;
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">لا توجد أوقات متاحة حالياً.</p>`;
                 return;
             }
 
@@ -405,7 +411,7 @@
                             <div class="slot-time"><i class="fa-regular fa-clock" style="color: var(--primary);"></i> ${slot.time}</div>
                         </div>
                         <button class="btn" style="width: 100%; justify-content: center;" onclick="bookSlot(${slot.id})">
-                            <i class="fa-solid fa-check"></i> حجز الآن (مكفول مجاناً)
+                            <i class="fa-solid fa-check"></i> حجز الآن
                         </button>
                     </div>
                 `;
@@ -413,7 +419,7 @@
         }
 
         async function bookSlot(slotId) {
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('slots')
                 .update({ is_booked: true, booked_by: currentUser.email })
                 .eq('id', slotId);
@@ -421,7 +427,7 @@
             if (error) {
                 alert('حدث خطأ أثناء الحجز، يرجى المحاولة مرة أخرى.');
             } else {
-                alert('تم حفظ حجزك في قاعدة البيانات بنجاح!');
+                alert('تم حفظ حجزك بنجاح!');
                 fetchAndRenderSlots();
             }
         }
@@ -430,7 +436,7 @@
             const grid = document.getElementById('my-bookings-grid');
             grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">جاري تحضير حجوزاتك...</p>';
 
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('slots')
                 .select('*')
                 .eq('booked_by', currentUser.email);
@@ -462,7 +468,7 @@
 
         async function cancelBooking(slotId) {
             if (confirm('هل أنتِ متأكدة من إلغاء هذا الحجز؟')) {
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('slots')
                     .update({ is_booked: false, booked_by: null })
                     .eq('id', slotId);
@@ -477,7 +483,7 @@
             const grid = document.getElementById('teams-grid');
             grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">جاري تحميل طلبات الفرق...</p>';
 
-            const { data, error } = await supabase.from('teams').select('*');
+            const { data, error } = await supabaseClient.from('teams').select('*');
 
             if (error || !data || data.length === 0) {
                 grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">لا توجد طلبات فرق حالياً.</p>`;
@@ -503,7 +509,7 @@
         }
 
         async function joinTeam(teamId, currentJoined) {
-            await supabase.from('teams').update({ joined: currentJoined + 1 }).eq('id', teamId);
+            await supabaseClient.from('teams').update({ joined: currentJoined + 1 }).eq('id', teamId);
             fetchAndRenderTeams();
         }
 
@@ -518,11 +524,11 @@
                 author: currentUser.name
             };
 
-            const { error } = await supabase.from('teams').insert([newTeam]);
+            const { error } = await supabaseClient.from('teams').insert([newTeam]);
             if (!error) {
                 closeModal('create-team-modal');
                 fetchAndRenderTeams();
-                alert('تم نشر طلب الفريق وتخزينه في قاعدة البيانات بنجاح!');
+                alert('تم نشر طلب الفريق بنجاح!');
             }
         }
 
@@ -530,7 +536,7 @@
             const tbody = document.getElementById('admin-slots-table');
             tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">جاري تحميل البيانات...</td></tr>';
 
-            const { data, error } = await supabase.from('slots').select('*');
+            const { data, error } = await supabaseClient.from('slots').select('*');
             if (error || !data) return;
 
             tbody.innerHTML = '';
@@ -564,17 +570,17 @@
                 is_booked: false
             };
 
-            const { error } = await supabase.from('slots').insert([newSlot]);
+            const { error } = await supabaseClient.from('slots').insert([newSlot]);
             if (!error) {
                 closeModal('add-slot-modal');
                 fetchAndRenderAdminPage();
-                alert('تم إضافة الوقت المتاح في قاعدة البيانات بنجاح!');
+                alert('تم إضافة الوقت المتاح بنجاح!');
             }
         }
 
         async function deleteSlot(id) {
-            if (confirm('هل تريدين حذف هذا الوقت من قاعدة البيانات؟')) {
-                await supabase.from('slots').delete().eq('id', id);
+            if (confirm('هل تريدين حذف هذا الوقت؟')) {
+                await supabaseClient.from('slots').delete().eq('id', id);
                 fetchAndRenderAdminPage();
             }
         }
