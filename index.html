@@ -436,15 +436,19 @@
             }
         }
 
-      // تبديل سطر الاستعلام القديم داخل الدالة
-async function fetchAndRenderSlots() {
- 
-    let query = supabaseClient
-        .from('slots')
-        .select('*, courts(name)') // جلب بيانات الملعب المرتبط
-        .eq('is_booked', false);
+        async function fetchAndRenderMyBookings() {
+            const grid = document.getElementById('my-bookings-grid');
+            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">جاري تحضير حجوزاتك...</p>';
 
-}
+            const { data, error } = await supabaseClient
+                .from('slots')
+                .select('*')
+                .eq('booked_by', currentUser.email);
+
+            if (error || !data || data.length === 0) {
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">ليس لديكِ حجوزات قائمة حالياً.</p>`;
+                return;
+            }
 
             grid.innerHTML = '';
             data.forEach(slot => {
