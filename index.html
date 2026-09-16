@@ -297,11 +297,14 @@
                 <input type="hidden" id="edit-slot-id">
                 <div class="form-group">
                     <label>اسم الملعب / الرياضة</label>
+
                     <select id="edit-slot-sport" required>
                         <option value="كرة سلة - ملعب A">كرة سلة - ملعب A</option>
                         <option value="كرة طائرة - الملعب الرئيسي">كرة طائرة - الملعب الرئيسي</option>
+
                         <option value="تنس - ملعب 1">تنس - ملعب 1</option>
                         <option value="تنس - ملعب 2">تنس - ملعب 2</option>
+
                     </select>
                 </div>
                 <div class="form-group">
@@ -328,14 +331,14 @@
     </footer>
 
     <script>
-        const SUPABASE_URL = "https://milvueldmckhgyjngviw.supabase.co"; 
+        const SUPABASE_URL = "https://milvueldmckhgyjngviw.supabase.co";"; 
         const SUPABASE_ANON_KEY = "sb_publishable_AwrrvUEr1vhCX4TWKPNLhw_uxFU7b-S"; 
         
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentUser = null;
         let isSignupMode = false;
-        let adminSlotsData = []; // تخزين الحالات محلياً للتعديل السريع
+        let adminSlotsData = []; 
 
         function toggleAuthMode() {
             isSignupMode = !isSignupMode;
@@ -592,7 +595,7 @@
                 return;
             }
 
-            adminSlotsData = data; // تخزين البيانات لاستخدامها عند التعديل
+            adminSlotsData = data; 
 
             tbody.innerHTML = '';
             data.forEach(slot => {
@@ -651,11 +654,19 @@
         }
 
         function openEditModal(slotId) {
-            const slot = adminSlotsData.find(s => s.id === slotId);
-            if (!slot) return;
+            const slot = adminSlotsData.find(s => String(s.id) === String(slotId));
+            if (!slot) {
+                alert("لم يتم العثور على بيانات هذا الملعب!");
+                return;
+            }
 
             document.getElementById('edit-slot-id').value = slot.id;
-            document.getElementById('edit-slot-sport').value = slot.court;
+            
+            const sportSelect = document.getElementById('edit-slot-sport');
+            if (sportSelect.querySelector(`option[value="${slot.court}"]`)) {
+                sportSelect.value = slot.court;
+            }
+
             document.getElementById('edit-slot-day').value = slot.day;
             document.getElementById('edit-slot-time-str').value = slot.time;
 
