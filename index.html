@@ -53,10 +53,9 @@
     <!-- Main Admin Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
 
-        <!-- Header Title -->
         <div>
             <h1 class="text-2xl font-bold text-gray-900">لوحة إدارة أوقات الملاعب والحجوزات</h1>
-            <p class="text-sm text-gray-500 mt-1">إضافة، تعديل، وحذف الأوقات أو الحجوزات القائمة في النظام.</p>
+            <p class="text-sm text-gray-500 mt-1">إضافة، تعديل، وحذف الأوقات والملاعب في النظام.</p>
         </div>
 
         <!-- SECTION 1: Add New Slot Form -->
@@ -65,43 +64,50 @@
                 <svg class="w-5 h-5 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                 إضافة وقت متاح جديد
             </h2>
-            <form class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <form id="addSlotForm" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end" onsubmit="handleAddSlot(event)">
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 mb-1">نوع الرياضة والملعب</label>
-                    <select class="w-full bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg p-2.5 focus:ring-brand focus:border-brand">
+                    <select id="courtName" required class="w-full bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg p-2.5 focus:ring-brand focus:border-brand">
                         <option value="">اختر الملعب</option>
-                        <option value="tennis_1">تنس - ملعب 1</option>
-                        <option value="basket_1">كرة سلة - الصالة المغلقة</option>
-                        <option value="volley_1">كرة طائرة - ملعب 2</option>
+                        <option value="تنس - ملعب 1">تنس - ملعب 1</option>
+                        <option value="كرة سلة - الصالة المغلقة">كرة سلة - الصالة المغلقة</option>
+                        <option value="كرة طائرة - ملعب 2">كرة طائرة - ملعب 2</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">اليوم</label>
-                    <input type="date" class="w-full bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg p-2.5 focus:ring-brand focus:border-brand">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">اليوم (أيام الأسبوع)</label>
+                    <select id="dayOfWeek" required class="w-full bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg p-2.5 focus:ring-brand focus:border-brand">
+                        <option value="">اختر اليوم</option>
+                        <option value="الأحد">الأحد</option>
+                        <option value="الإثنين">الإثنين</option>
+                        <option value="الثلاثاء">الثلاثاء</option>
+                        <option value="الأربعاء">الأربعاء</option>
+                        <option value="الخميس">الخميس</option>
+                        <option value="الجمعة">الجمعة</option>
+                        <option value="السبت">السبت</option>
+                    </select>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 mb-1">الوقت المتاح</label>
-                    <select class="w-full bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg p-2.5 focus:ring-brand focus:border-brand">
-                        <option value="04:00 PM">04:00 مساءً - 05:00 مساءً</option>
-                        <option value="05:00 PM">05:00 مساءً - 06:00 مساءً</option>
-                        <option value="06:00 PM">06:00 مساءً - 07:00 مساءً</option>
+                    <select id="timeSlot" required class="w-full bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg p-2.5 focus:ring-brand focus:border-brand">
+                        <option value="">اختر الوقت</option>
+                        <option value="04:00 م - 05:00 م">04:00 مساءً - 05:00 مساءً</option>
+                        <option value="05:00 م - 06:00 م">05:00 مساءً - 06:00 مساءً</option>
+                        <option value="06:00 م - 07:00 م">06:00 مساءً - 07:00 مساءً</option>
                     </select>
                 </div>
                 <div>
-                    <button type="submit" class="w-full bg-brand hover:bg-brand-dark text-white font-medium text-sm px-5 py-2.5 rounded-lg transition duration-150 flex items-center justify-center gap-1">
-                        <span>إضافة الوقت</span>
+                    <button type="submit" class="w-full bg-brand hover:bg-brand-dark text-white font-medium text-sm px-5 py-2.5 rounded-lg transition duration-150">
+                        إضافة الوقت
                     </button>
                 </div>
             </form>
         </section>
 
-        <!-- SECTION 2: Slots & Bookings Table (مع أزرار التعديل والحذف) -->
+        <!-- SECTION 2: Slots Table -->
         <section class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="p-6 border-b border-gray-100 flex justify-between items-center flex-wrap gap-4">
                 <h2 class="text-lg font-bold text-gray-800">سجل الأوقات والحجوزات الحالية</h2>
-                <div class="text-xs text-gray-500">
-                    ملاحظة: يمكنك **تعديل التفاصيل** أو **حذف/إلغاء** أي خانة مباشرة من الجدول.
-                </div>
             </div>
 
             <div class="overflow-x-auto">
@@ -109,76 +115,15 @@
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-100">
                         <tr>
                             <th scope="col" class="px-6 py-3">الملعب / الرياضة</th>
-                            <th scope="col" class="px-6 py-3">اليوم والتاريخ</th>
+                            <th scope="col" class="px-6 py-3">اليوم</th>
                             <th scope="col" class="px-6 py-3">الوقت</th>
                             <th scope="col" class="px-6 py-3">الحالة</th>
                             <th scope="col" class="px-6 py-3">المحجوز باسم</th>
                             <th scope="col" class="px-6 py-3 text-center">الإجراءات المتاحة</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        <!-- Row 1: Booked Slot -->
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 font-semibold text-gray-900">تنس - ملعب 1</td>
-                            <td class="px-6 py-4">الأحد (2026-09-20)</td>
-                            <td class="px-6 py-4">04:00 م - 05:00 م</td>
-                            <td class="px-6 py-4">
-                                <span class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-medium">محجوز</span>
-                            </td>
-                            <td class="px-6 py-4">منار باعمر (طالبة)</td>
-                            <td class="px-6 py-4 text-center">
-                                <div class="flex items-center justify-center gap-2">
-                                    <button type="button" onclick="alert('فتح نافذة تعديل الوقت/الملعب')" class="text-brand hover:text-brand-dark font-medium text-xs bg-brand-light hover:bg-teal-100 px-3 py-1.5 rounded-lg border border-teal-200 transition">
-                                        تعديل
-                                    </button>
-                                    <button type="button" onclick="confirm('هل أنت متأكد من إلغاء وحذف هذا الحجز؟')" class="text-red-600 hover:text-red-800 font-medium text-xs bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg border border-red-200 transition">
-                                        حذف
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <!-- Row 2: Available Slot -->
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 font-semibold text-gray-900">كرة سلة - الصالة المغلقة</td>
-                            <td class="px-6 py-4">الأحد (2026-09-20)</td>
-                            <td class="px-6 py-4">05:00 م - 06:00 م</td>
-                            <td class="px-6 py-4">
-                                <span class="bg-green-100 text-green-700 text-xs px-2.5 py-1 rounded-full font-medium">متاح</span>
-                            </td>
-                            <td class="px-6 py-4 text-gray-400">-</td>
-                            <td class="px-6 py-4 text-center">
-                                <div class="flex items-center justify-center gap-2">
-                                    <button type="button" onclick="alert('فتح نافذة تعديل الوقت/الملعب')" class="text-brand hover:text-brand-dark font-medium text-xs bg-brand-light hover:bg-teal-100 px-3 py-1.5 rounded-lg border border-teal-200 transition">
-                                        تعديل
-                                    </button>
-                                    <button type="button" onclick="confirm('هل أنت متأكد من حذف هذا الوقت المتاح؟')" class="text-red-600 hover:text-red-800 font-medium text-xs bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg border border-red-200 transition">
-                                        حذف
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <!-- Row 3: Available Slot -->
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 font-semibold text-gray-900">كرة طائرة - ملعب 2</td>
-                            <td class="px-6 py-4">الإثنين (2026-09-21)</td>
-                            <td class="px-6 py-4">06:00 م - 07:00 م</td>
-                            <td class="px-6 py-4">
-                                <span class="bg-green-100 text-green-700 text-xs px-2.5 py-1 rounded-full font-medium">متاح</span>
-                            </td>
-                            <td class="px-6 py-4 text-gray-400">-</td>
-                            <td class="px-6 py-4 text-center">
-                                <div class="flex items-center justify-center gap-2">
-                                    <button type="button" onclick="alert('فتح نافذة تعديل الوقت/الملعب')" class="text-brand hover:text-brand-dark font-medium text-xs bg-brand-light hover:bg-teal-100 px-3 py-1.5 rounded-lg border border-teal-200 transition">
-                                        تعديل
-                                    </button>
-                                    <button type="button" onclick="confirm('هل أنت متأكد من حذف هذا الوقت المتاح؟')" class="text-red-600 hover:text-red-800 font-medium text-xs bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg border border-red-200 transition">
-                                        حذف
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                    <tbody id="slotsTableBody" class="divide-y divide-gray-100">
+                        <!-- يتم تحميل أسطر الجدول ديناميكياً من Supabase -->
                     </tbody>
                 </table>
             </div>
@@ -186,10 +131,132 @@
 
     </main>
 
-    <!-- Simple Footer -->
     <footer class="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-500 mt-auto">
         منصة سليم - نادي الطالبات الرياضي بجامعة الملك سعود © 2026
     </footer>
 
+    <!-- ================================================================= -->
+    <!-- 1. استدعاء مكتبة Supabase -->
+    <!-- ================================================================= -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- ================================================================= -->
+    <!-- 2. كود الاتصال وقواعد البيانات (أضف مفاتيحك هنا) -->
+    <!-- ================================================================= -->
+    <script>
+        // 🔑 ضع مفاتيح مشروعك في Supabase هنا:
+        const SUPABASE_URL = 'https://YOUR_SUPABASE_PROJECT_ID.supabase.co'; // ضع رابط المشروع هنا
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // ضع المفتاح العام (anon key) هنا
+
+        // تهيئة الاتصال
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // تحميل أوقات الملاعب من قاعدة البيانات عند فتح الصفحة
+        document.addEventListener('DOMContentLoaded', fetchSlots);
+
+        // دالة جلب الأوقات وعرضها في الجدول
+        async function fetchSlots() {
+            const tbody = document.getElementById('slotsTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">جاري التحميل...</td></tr>';
+
+            const { data: slots, error } = await _supabase
+                .from('slots')
+                .select('*')
+                .order('id', { ascending: false });
+
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-red-500">حدث خطأ أثناء تحميل البيانات: ${error.message}</td></tr>`;
+                return;
+            }
+
+            if (!slots || slots.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">لا توجد أوقات مضافة حالياً.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            slots.forEach(slot => {
+                const isBooked = slot.status === ' محجوز' || slot.is_booked;
+                const statusBadge = isBooked 
+                    ? '<span class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-medium">محجوز</span>'
+                    : '<span class="bg-green-100 text-green-700 text-xs px-2.5 py-1 rounded-full font-medium">متاح</span>';
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50';
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-semibold text-gray-900">${slot.court_name}</td>
+                    <td class="px-6 py-4">${slot.day_of_week}</td>
+                    <td class="px-6 py-4">${slot.time_slot}</td>
+                    <td class="px-6 py-4">${statusBadge}</td>
+                    <td class="px-6 py-4">${slot.booked_by || '-'}</td>
+                    <td class="px-6 py-4 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <button type="button" onclick="editSlot('${slot.id}', '${slot.time_slot}', '${slot.day_of_week}')" class="text-brand hover:text-brand-dark font-medium text-xs bg-brand-light px-3 py-1.5 rounded-lg border border-teal-200 transition">
+                                تعديل
+                            </button>
+                            <button type="button" onclick="deleteSlot('${slot.id}')" class="text-red-600 hover:text-red-800 font-medium text-xs bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg border border-red-200 transition">
+                                حذف
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // دالة إضافة وقت جديد (Create)
+        async function handleAddSlot(e) {
+            e.preventDefault();
+            const court_name = document.getElementById('courtName').value;
+            const day_of_week = document.getElementById('dayOfWeek').value;
+            const time_slot = document.getElementById('timeSlot').value;
+
+            const { error } = await _supabase.from('slots').insert([
+                { court_name, day_of_week, time_slot, status: 'متاح', is_booked: false }
+            ]);
+
+            if (error) {
+                alert('خطأ أثناء الإضافة: ' + error.message);
+            } else {
+                alert('تمت إضافة الوقت بنجاح!');
+                document.getElementById('addSlotForm').reset();
+                fetchSlots();
+            }
+        }
+
+        // دالة تعديل الوقت أو اليوم (Update)
+        async function editSlot(id, currentTime, currentDay) {
+            const newDay = prompt('أدخل اليوم الجديد (مثال: الأحد):', currentDay);
+            const newTime = prompt('أدخل الوقت الجديد (مثال: 05:00 م - 06:00 م):', currentTime);
+
+            if (newDay && newTime) {
+                const { error } = await _supabase
+                    .from('slots')
+                    .update({ day_of_week: newDay, time_slot: newTime })
+                    .eq('id', id);
+
+                if (error) {
+                    alert('خطأ أثناء التعديل: ' + error.message);
+                } else {
+                    alert('تم التعديل بنجاح!');
+                    fetchSlots();
+                }
+            }
+        }
+
+        // دالة حذف الوقت (Delete)
+        async function deleteSlot(id) {
+            if (confirm('هل أنت متأكد من حذف هذا الوقت؟')) {
+                const { error } = await _supabase.from('slots').delete().eq('id', id);
+
+                if (error) {
+                    alert('خطأ أثناء الحذف: ' + error.message);
+                } else {
+                    alert('تم الحذف بنجاح!');
+                    fetchSlots();
+                }
+            }
+        }
+    </script>
 </body>
 </html>
