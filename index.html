@@ -3,623 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة سليم | نادي الطالبات الرياضي - جامعة الملك سعود</title>
-    
-    <!-- الخطوط والأيقونات -->
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- مكتبة Supabase CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <style>
-        :root {
-            --primary: #00838F;
-            --primary-hover: #006064;
-            --secondary: #26A69A;
-            --accent: #FF7043;
-            --bg-light: #F4F7F6;
-            --card-bg: #FFFFFF;
-            --text-main: #2C3E50;
-            --text-muted: #7F8C8D;
-            --border-color: #E0E0E0;
-            --radius: 12px;
-            --shadow: 0 4px 15px rgba(0,0,0,0.05);
+    <title>سليم | لوحة الإدارة</title>
+    <!-- Tailwind CSS عبر CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            DEFAULT: '#00838F',
+                            dark: '#005662',
+                            light: '#E0F2F1',
+                            bg: '#F4F7F6'
+                        }
+                    }
+                }
+            }
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
-        body { background-color: var(--bg-light); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
-
-        header { background-color: var(--card-bg); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
-        .nav-container { max-width: 1200px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
-        .logo { display: flex; align-items: center; gap: 10px; font-size: 1.5rem; font-weight: 800; color: var(--primary); text-decoration: none; }
-        nav ul { display: flex; list-style: none; gap: 20px; }
-        nav a { text-decoration: none; color: var(--text-main); font-weight: 500; padding: 8px 16px; border-radius: 20px; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; }
-        nav a:hover, nav a.active { background-color: rgba(0, 131, 143, 0.1); color: var(--primary); }
-
-        .user-profile { display: flex; align-items: center; gap: 12px; }
-        .role-badge { background: #E0F2F1; color: var(--primary); padding: 4px 12px; border-radius: 50px; font-size: 0.85rem; font-weight: bold; }
-
-        main { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; flex: 1; width: 100%; }
-        .page-section { display: none; animation: fadeIn 0.4s ease-in-out forwards; }
-        .page-section.active { display: block; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .section-header { margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
-        .section-title { font-size: 1.8rem; color: var(--primary); display: flex; align-items: center; gap: 10px; }
-
-        .btn { background-color: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: var(--radius); cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
-        .btn:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
-        .btn:disabled { background-color: var(--text-muted); cursor: not-allowed; transform: none; }
-        .btn-outline { background-color: transparent; border: 2px solid var(--primary); color: var(--primary); }
-        .btn-outline:hover { background-color: var(--primary); color: white; }
-        .btn-danger { background-color: #E53935; } .btn-danger:hover { background-color: #C62828; }
-
-        .grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .card { background: var(--card-bg); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border-color); transition: transform 0.3s ease; }
-        .card:hover { transform: translateY(-5px); }
-
-        .filters-bar { background-color: var(--card-bg); padding: 1rem 1.5rem; border-radius: var(--radius); margin-bottom: 2rem; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; box-shadow: var(--shadow); }
-        .filter-group { display: flex; align-items: center; gap: 8px; }
-        select, input { padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; outline: none; }
-        select:focus, input:focus { border-color: var(--primary); }
-
-        .slot-card { display: flex; flex-direction: column; justify-content: space-between; gap: 15px; }
-        .slot-header { display: flex; justify-content: space-between; align-items: center; }
-        .sport-tag { background-color: #E0F2F1; color: var(--primary); padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; }
-        .slot-time { font-size: 1.1rem; font-weight: bold; color: var(--text-main); margin: 10px 0; display: flex; align-items: center; gap: 8px; }
-
-        .auth-container { max-width: 450px; margin: 3rem auto; background: var(--card-bg); padding: 2.5rem; border-radius: var(--radius); box-shadow: var(--shadow); }
-        .form-group { margin-bottom: 1.2rem; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
-        .form-group input, .form-group select { width: 100%; }
-
-        .alert-info { background-color: #E1F5FE; color: #0288D1; padding: 10px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
-
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
-        .modal-content { background: var(--card-bg); padding: 2rem; border-radius: var(--radius); width: 90%; max-width: 500px; box-shadow: var(--shadow); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-
-        .table-responsive { overflow-x: auto; background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); }
-        table { width: 100%; border-collapse: collapse; text-align: right; }
-        th, td { padding: 1rem; border-bottom: 1px solid var(--border-color); }
-        th { background-color: #F9FBFB; color: var(--primary); }
-
-        footer { background-color: var(--card-bg); border-top: 1px solid var(--border-color); text-align: center; padding: 1.5rem; margin-top: auto; color: var(--text-muted); font-size: 0.9rem; }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Tajawal', sans-serif; }
     </style>
 </head>
-<body>
+<body class="bg-brand-bg text-gray-800 min-h-screen flex flex-col">
 
-    <header>
-        <div class="nav-container">
-            <a href="#" class="logo" onclick="switchTab('booking')">
-                <i class="fa-solid fa-volleyball"></i> سليم 
-            </a>
-            <nav id="main-nav" style="display: none;">
-                <ul>
-                    <li><a href="#" id="nav-booking" class="active" onclick="switchTab('booking')"><i class="fa-solid fa-calendar-days"></i> جدول الملاعب</a></li>
-                    <li><a href="#" id="nav-community" onclick="switchTab('community')"><i class="fa-solid fa-users"></i> الفرق والمجتمعات</a></li>
-                    <li><a href="#" id="nav-my-bookings" onclick="switchTab('my-bookings')"><i class="fa-solid fa-ticket"></i> حجوزاتي</a></li>
-                    <li id="admin-link" style="display: none;"><a href="#" id="nav-admin" onclick="switchTab('admin')"><i class="fa-solid fa-user-gear"></i> لوحة الإدارة</a></li>
-                </ul>
-            </nav>
-            <div class="user-profile" id="user-profile" style="display: none;">
-                <span class="role-badge" id="user-role-badge">طالبة</span>
-                <span id="user-display-name">طالبة جامعة الملك سعود</span>
-                <button class="btn btn-outline" style="padding: 5px 10px; font-size: 0.85rem;" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+    <!-- Header Navigation -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-8">
+                <span class="text-2xl font-bold text-brand">سليم</span>
+                <nav class="hidden md:flex gap-6 text-sm font-medium text-gray-600">
+                    <a href="#" class="hover:text-brand">جدول الملاعب</a>
+                    <a href="#" class="hover:text-brand">الفرق والمجتمعات</a>
+                    <a href="#" class="hover:text-brand">حجوزاتي</a>
+                    <a href="#" class="text-brand font-bold border-b-2 border-brand pb-1">لوحة الإدارة</a>
+                </nav>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xs bg-brand-light text-brand-dark px-2.5 py-1 rounded-full font-semibold">إدارة النادي</span>
+                <div class="w-8 h-8 rounded-full bg-brand text-white flex items-center justify-center font-bold text-sm">
+                    إ
+                </div>
             </div>
         </div>
     </header>
 
-    <main>
-        <!-- 1. شاشة تسجيل الدخول وإنشاء حساب -->
-        <section id="auth-section" class="page-section active">
-            <div class="auth-container">
-                <h2 style="text-align: center; color: var(--primary); margin-bottom: 1.5rem;" id="auth-title">تسجيل الدخول - منصة سليم</h2>
-                <div class="alert-info">
-                    <i class="fa-solid fa-circle-info"></i>
-                    التحقق التلقائي للبريد الجامعي (@ksu.edu.sa)
-                </div>
+    <!-- Main Admin Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
 
-                <form id="auth-form" onsubmit="handleAuth(event)">
-                    <div class="form-group" id="name-group" style="display: none;">
-                        <label>الاسم الكامل</label>
-                        <input type="text" id="auth-name" placeholder="أدخلي اسمك الثلاثي">
-                    </div>
-                    <div class="form-group">
-                        <label>البريد الإلكتروني الجامعي</label>
-                        <input type="email" id="auth-email" placeholder="example@ksu.edu.sa" required pattern="^[a-zA-Z0-9._%+-]+@ksu\.edu\.sa$" title="يرجى إدخال بريد إلكتروني ينتهي بـ @ksu.edu.sa">
-                    </div>
-                    <div class="form-group">
-                        <label>كلمة المرور</label>
-                        <input type="password" id="auth-password" required minlength="6" placeholder="******">
-                    </div>
-                    <button type="submit" class="btn" style="width: 100%; justify-content: center;" id="auth-submit-btn">دخول</button>
-                </form>
-                <p style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem;">
-                    <span id="auth-toggle-text">ليس لديك حساب؟</span>
-                    <a href="#" style="color: var(--primary); font-weight: bold;" onclick="toggleAuthMode()">انشئي حساباً الآن</a>
-                </p>
-            </div>
-        </section>
+        <!-- Header Title -->
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">لوحة إدارة أوقات الملاعب والحجوزات</h1>
+            <p class="text-sm text-gray-500 mt-1">إضافة، تعديل، وحذف الأوقات أو الحجوزات القائمة في النظام.</p>
+        </div>
 
-        <!-- 2. جدول الملاعب -->
-        <section id="booking-section" class="page-section">
-            <div class="section-header">
-                <h2 class="section-title"><i class="fa-solid fa-calendar-check"></i> الملاعب والأوقات المتاحة</h2>
-            </div>
-            <div class="filters-bar">
-                <div class="filter-group">
-                    <label><i class="fa-solid fa-filter"></i> الرياضة:</label>
-                    <select id="filter-sport" onchange="fetchAndRenderSlots()">
-                        <option value="all">جميع الرياضات</option>
-                        <option value="تنس">كرة المضرب (تنس)</option>
-                        <option value="كرة سلة">كرة السلة</option>
-                        <option value="كرة طائرة">كرة الطائرة</option>
+        <!-- SECTION 1: Add New Slot Form -->
+        <section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                إضافة وقت متاح جديد
+            </h2>
+            <form class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">نوع الرياضة والملعب</label>
+                    <select class="w-full bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg p-2.5 focus:ring-brand focus:border-brand">
+                        <option value="">اختر الملعب</option>
+                        <option value="tennis_1">تنس - ملعب 1</option>
+                        <option value="basket_1">كرة سلة - الصالة المغلقة</option>
+                        <option value="volley_1">كرة طائرة - ملعب 2</option>
                     </select>
                 </div>
-                <div class="filter-group">
-                    <label><i class="fa-solid fa-calendar"></i> اليوم:</label>
-                    <select id="filter-day" onchange="fetchAndRenderSlots()">
-                        <option value="all">جميع الأيام</option>
-                        <option value="الأحد">الأحد</option>
-                        <option value="الإثنين">الإثنين</option>
-                        <option value="الثلاثاء">الثلاثاء</option>
-                        <option value="الأربعاء">الأربعاء</option>
-                        <option value="الخميس">الخميس</option>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">اليوم</label>
+                    <input type="date" class="w-full bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg p-2.5 focus:ring-brand focus:border-brand">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">الوقت المتاح</label>
+                    <select class="w-full bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg p-2.5 focus:ring-brand focus:border-brand">
+                        <option value="04:00 PM">04:00 مساءً - 05:00 مساءً</option>
+                        <option value="05:00 PM">05:00 مساءً - 06:00 مساءً</option>
+                        <option value="06:00 PM">06:00 مساءً - 07:00 مساءً</option>
                     </select>
                 </div>
-            </div>
-            <div class="grid-cards" id="slots-grid"></div>
+                <div>
+                    <button type="submit" class="w-full bg-brand hover:bg-brand-dark text-white font-medium text-sm px-5 py-2.5 rounded-lg transition duration-150 flex items-center justify-center gap-1">
+                        <span>إضافة الوقت</span>
+                    </button>
+                </div>
+            </form>
         </section>
 
-        <!-- 3. الفرق والمجتمعات -->
-        <section id="community-section" class="page-section">
-            <div class="section-header">
-                <h2 class="section-title"><i class="fa-solid fa-users-gear"></i> تشكيل الفرق والمجتمعات</h2>
-                <button class="btn" onclick="openModal('create-team-modal')"><i class="fa-solid fa-plus"></i> إنشاء طلب فريق</button>
+        <!-- SECTION 2: Slots & Bookings Table (مع أزرار التعديل والحذف) -->
+        <section class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center flex-wrap gap-4">
+                <h2 class="text-lg font-bold text-gray-800">سجل الأوقات والحجوزات الحالية</h2>
+                <div class="text-xs text-gray-500">
+                    ملاحظة: يمكنك **تعديل التفاصيل** أو **حذف/إلغاء** أي خانة مباشرة من الجدول.
+                </div>
             </div>
-            <div class="grid-cards" id="teams-grid"></div>
-        </section>
 
-        <!-- 4. حجوزاتي -->
-        <section id="my-bookings-section" class="page-section">
-            <div class="section-header">
-                <h2 class="section-title"><i class="fa-solid fa-ticket"></i> حجوزاتي الحالية</h2>
-            </div>
-            <div class="grid-cards" id="my-bookings-grid"></div>
-        </section>
-
-        <!-- 5. لوحة الإدارة -->
-        <section id="admin-section" class="page-section">
-            <div class="section-header">
-                <h2 class="section-title"><i class="fa-solid fa-sliders"></i> لوحة إدارة النادي</h2>
-                <button class="btn" onclick="openModal('add-slot-modal')"><i class="fa-solid fa-calendar-plus"></i> إضافة وقت متاح جديد</button>
-            </div>
-            <div class="table-responsive">
-                <h3 style="padding: 1rem; color: var(--primary);">إدارة الأوقات والملاعب المتاحة</h3>
-                <table>
-                    <thead>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-right text-gray-600">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-100">
                         <tr>
-                            <th>الملعب / الرياضة</th>
-                            <th>اليوم</th>
-                            <th>الوقت</th>
-                            <th>الحالة</th>
-                            <th>الإجراءات</th>
+                            <th scope="col" class="px-6 py-3">الملعب / الرياضة</th>
+                            <th scope="col" class="px-6 py-3">اليوم والتاريخ</th>
+                            <th scope="col" class="px-6 py-3">الوقت</th>
+                            <th scope="col" class="px-6 py-3">الحالة</th>
+                            <th scope="col" class="px-6 py-3">المحجوز باسم</th>
+                            <th scope="col" class="px-6 py-3 text-center">الإجراءات المتاحة</th>
                         </tr>
                     </thead>
-                    <tbody id="admin-slots-table"></tbody>
+                    <tbody class="divide-y divide-gray-100">
+                        <!-- Row 1: Booked Slot -->
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-semibold text-gray-900">تنس - ملعب 1</td>
+                            <td class="px-6 py-4">الأحد (2026-09-20)</td>
+                            <td class="px-6 py-4">04:00 م - 05:00 م</td>
+                            <td class="px-6 py-4">
+                                <span class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-medium">محجوز</span>
+                            </td>
+                            <td class="px-6 py-4">منار باعمر (طالبة)</td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button type="button" onclick="alert('فتح نافذة تعديل الوقت/الملعب')" class="text-brand hover:text-brand-dark font-medium text-xs bg-brand-light hover:bg-teal-100 px-3 py-1.5 rounded-lg border border-teal-200 transition">
+                                        تعديل
+                                    </button>
+                                    <button type="button" onclick="confirm('هل أنت متأكد من إلغاء وحذف هذا الحجز؟')" class="text-red-600 hover:text-red-800 font-medium text-xs bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg border border-red-200 transition">
+                                        حذف
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Row 2: Available Slot -->
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-semibold text-gray-900">كرة سلة - الصالة المغلقة</td>
+                            <td class="px-6 py-4">الأحد (2026-09-20)</td>
+                            <td class="px-6 py-4">05:00 م - 06:00 م</td>
+                            <td class="px-6 py-4">
+                                <span class="bg-green-100 text-green-700 text-xs px-2.5 py-1 rounded-full font-medium">متاح</span>
+                            </td>
+                            <td class="px-6 py-4 text-gray-400">-</td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button type="button" onclick="alert('فتح نافذة تعديل الوقت/الملعب')" class="text-brand hover:text-brand-dark font-medium text-xs bg-brand-light hover:bg-teal-100 px-3 py-1.5 rounded-lg border border-teal-200 transition">
+                                        تعديل
+                                    </button>
+                                    <button type="button" onclick="confirm('هل أنت متأكد من حذف هذا الوقت المتاح؟')" class="text-red-600 hover:text-red-800 font-medium text-xs bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg border border-red-200 transition">
+                                        حذف
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Row 3: Available Slot -->
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-semibold text-gray-900">كرة طائرة - ملعب 2</td>
+                            <td class="px-6 py-4">الإثنين (2026-09-21)</td>
+                            <td class="px-6 py-4">06:00 م - 07:00 م</td>
+                            <td class="px-6 py-4">
+                                <span class="bg-green-100 text-green-700 text-xs px-2.5 py-1 rounded-full font-medium">متاح</span>
+                            </td>
+                            <td class="px-6 py-4 text-gray-400">-</td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button type="button" onclick="alert('فتح نافذة تعديل الوقت/الملعب')" class="text-brand hover:text-brand-dark font-medium text-xs bg-brand-light hover:bg-teal-100 px-3 py-1.5 rounded-lg border border-teal-200 transition">
+                                        تعديل
+                                    </button>
+                                    <button type="button" onclick="confirm('هل أنت متأكد من حذف هذا الوقت المتاح؟')" class="text-red-600 hover:text-red-800 font-medium text-xs bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg border border-red-200 transition">
+                                        حذف
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </section>
+
     </main>
 
-    <!-- Modal إنشاء طلب فريق -->
-    <div class="modal" id="create-team-modal" onclick="closeModalOnOverlay(event, 'create-team-modal')">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>إنشاء طلب تشكيل فريق</h3>
-                <i class="fa-solid fa-xmark" style="cursor: pointer;" onclick="closeModal('create-team-modal')"></i>
-            </div>
-            <form onsubmit="handleCreateTeam(event)">
-                <div class="form-group">
-                    <label>نوع الرياضة</label>
-                    <select id="team-sport" required>
-                        <option value="كرة سلة">كرة السلة</option>
-                        <option value="كرة طائرة">كرة الطائرة</option>
-                        <option value="تنس">كرة المضرب (تنس)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>اليوم والوقت المقترح</label>
-                    <input type="text" id="team-time" placeholder="مثال: الثلاثاء 4:00 مساءً" required>
-                </div>
-                <div class="form-group">
-                    <label>عدد اللاعبات المطلوب</label>
-                    <input type="number" id="team-count" min="1" max="23" placeholder="مثال: 3" required>
-                </div>
-                <div class="form-group">
-                    <label>رابط مجموعة التواصل (WhatsApp / Telegram)</label>
-                    <input type="url" id="team-link" placeholder="https://chat.whatsapp.com/..." required>
-                </div>
-                <button type="submit" class="btn" style="width: 100%; justify-content: center;">نشر الطلب</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal إضافة وقت متاح -->
-    <div class="modal" id="add-slot-modal" onclick="closeModalOnOverlay(event, 'add-slot-modal')">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>إضافة وقت متاح لملعب</h3>
-                <i class="fa-solid fa-xmark" style="cursor: pointer;" onclick="closeModal('add-slot-modal')"></i>
-            </div>
-            <form onsubmit="handleAddSlot(event)">
-                <div class="form-group">
-                    <label>اسم الملعب / الرياضة</label>
-                    <select id="slot-sport" required>
-                        <option value="كرة سلة - ملعب A">كرة سلة - ملعب A</option>
-                        <option value="كرة طائرة - الملعب الرئيسي">كرة طائرة - الملعب الرئيسي</option>
-                        <option value="تنس - ملعب 1">تنس - ملعب 1</option>
-                        <option value="تنس - ملعب 2">تنس - ملعب 2</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>اليوم</label>
-                    <select id="slot-day" required>
-                        <option value="الأحد">الأحد</option>
-                        <option value="الإثنين">الإثنين</option>
-                        <option value="الثلاثاء">الثلاثاء</option>
-                        <option value="الأربعاء">الأربعاء</option>
-                        <option value="الخميس">الخميس</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>الوقت</label>
-                    <input type="text" id="slot-time-str" placeholder="مثال: 1:00 م - 2:00 م" required>
-                </div>
-                <button type="submit" class="btn" style="width: 100%; justify-content: center;">حفظ الوقت</button>
-            </form>
-        </div>
-    </div>
-
-    <footer>
-        <p>جميع الحقوق محفوظة منصة سليم © 2026 - نادي الطالبات الرياضي بجامعة الملك سعود</p>
+    <!-- Simple Footer -->
+    <footer class="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-500 mt-auto">
+        منصة سليم - نادي الطالبات الرياضي بجامعة الملك سعود © 2026
     </footer>
 
-    <script>
-         const SUPABASE_URL = "https://milvueldmckhgyjngviw.supabase.co"; 
-        const SUPABASE_ANON_KEY = "sb_publishable_AwrrvUEr1vhCX4TWKPNLhw_uxFU7b-S"; 
-        
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        let currentUser = null;
-        let isSignupMode = false;
-
-        function toggleAuthMode() {
-            isSignupMode = !isSignupMode;
-            document.getElementById('auth-title').innerText = isSignupMode ? 'إنشاء حساب جديد - منصة سليم' : 'تسجيل الدخول - منصة سليم';
-            document.getElementById('name-group').style.display = isSignupMode ? 'block' : 'none';
-            document.getElementById('auth-submit-btn').innerText = isSignupMode ? 'إنشاء الحساب' : 'دخول';
-            document.getElementById('auth-toggle-text').innerText = isSignupMode ? 'لديك حساب بالفعل؟' : 'ليس لديك حساب؟';
-        }
-
-        async function handleAuth(e) {
-            e.preventDefault();
-            const submitBtn = document.getElementById('auth-submit-btn');
-            submitBtn.disabled = true;
-            submitBtn.innerText = 'جاري التحقق...';
-
-            const email = document.getElementById('auth-email').value.trim();
-            const password = document.getElementById('auth-password').value;
-            const name = isSignupMode ? document.getElementById('auth-name').value.trim() : email.split('@')[0];
-
-            if (!email.endsWith('@ksu.edu.sa')) {
-                alert('عذراً، يجب تسجيل الدخول باستخدام البريد الجامعي الرسمي (@ksu.edu.sa)');
-                submitBtn.disabled = false;
-                submitBtn.innerText = isSignupMode ? 'إنشاء الحساب' : 'دخول';
-                return;
-            }
-
-            let authResult;
-            try {
-                if (isSignupMode) {
-                    authResult = await supabaseClient.auth.signUp({ 
-                        email: email, 
-                        password: password,
-                        options: { data: { full_name: name } }
-                    });
-                } else {
-                    authResult = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
-                }
-
-                if (authResult.error) {
-                    alert('خطأ في المصادقة: ' + authResult.error.message);
-                    return;
-                }
-
-                const isAdmin = email.startsWith('admin');
-                currentUser = { name: name || 'طالبة بجامعة الملك سعود', email: email, role: isAdmin ? 'admin' : 'student' };
-
-                document.getElementById('main-nav').style.display = 'block';
-                document.getElementById('user-profile').style.display = 'flex';
-                document.getElementById('user-display-name').innerText = currentUser.name;
-                document.getElementById('user-role-badge').innerText = isAdmin ? 'إدارة النادي' : 'طالبة';
-                document.getElementById('admin-link').style.display = isAdmin ? 'block' : 'none';
-
-                fetchAndRenderSlots();
-                fetchAndRenderTeams();
-                switchTab('booking');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerText = isSignupMode ? 'إنشاء الحساب' : 'دخول';
-            }
-        }
-
-        async function logout() {
-            await supabaseClient.auth.signOut();
-            currentUser = null;
-            document.getElementById('main-nav').style.display = 'none';
-            document.getElementById('user-profile').style.display = 'none';
-            switchTab('auth');
-        }
-
-        function switchTab(tabName) {
-            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('nav a').forEach(el => el.classList.remove('active'));
-
-            if (tabName === 'auth') {
-                document.getElementById('auth-section').classList.add('active');
-            } else {
-                document.getElementById(`${tabName}-section`).classList.add('active');
-                if (document.getElementById(`nav-${tabName}`)) {
-                    document.getElementById(`nav-${tabName}`).classList.add('active');
-                }
-            }
-
-            if (tabName === 'my-bookings') fetchAndRenderMyBookings();
-            if (tabName === 'admin') fetchAndRenderAdminPage();
-        }
-
-        async function fetchAndRenderSlots() {
-            const grid = document.getElementById('slots-grid');
-            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">جاري جلب البيانات...</p>';
-
-            const sportFilter = document.getElementById('filter-sport').value;
-            const dayFilter = document.getElementById('filter-day').value;
-
-            let query = supabaseClient.from('slots').select('*').eq('is_booked', false);
-
-            if (sportFilter !== 'all') query = query.eq('sport', sportFilter);
-            if (dayFilter !== 'all') query = query.eq('day', dayFilter);
-
-            const { data, error } = await query;
-
-            if (error || !data || data.length === 0) {
-                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">لا توجد أوقات متاحة حالياً.</p>`;
-                return;
-            }
-
-            grid.innerHTML = '';
-            data.forEach(slot => {
-                grid.innerHTML += `
-                    <div class="card slot-card">
-                        <div>
-                            <div class="slot-header">
-                                <span class="sport-tag">${slot.sport}</span>
-                                <small style="color: var(--text-muted);"><i class="fa-regular fa-calendar"></i> ${slot.day}</small>
-                            </div>
-                            <h4 style="margin-top: 10px;">${slot.court}</h4>
-                            <div class="slot-time"><i class="fa-regular fa-clock" style="color: var(--primary);"></i> ${slot.time}</div>
-                        </div>
-                        <button class="btn" style="width: 100%; justify-content: center;" onclick="bookSlot(${slot.id})">
-                            <i class="fa-solid fa-check"></i> حجز الآن
-                        </button>
-                    </div>
-                `;
-            });
-        }
-
-        async function bookSlot(slotId) {
-            const { error } = await supabaseClient
-                .from('slots')
-                .update({ is_booked: true, booked_by: currentUser.email })
-                .eq('id', slotId)
-                .eq('is_booked', false);
-
-            if (error) {
-                alert('حدث خطأ أثناء الحجز، يرجى المحاولة مرة أخرى.');
-            } else {
-                alert('تم حفظ حجزك بنجاح!');
-                fetchAndRenderSlots();
-            }
-        }
-
-        async function fetchAndRenderMyBookings() {
-            const grid = document.getElementById('my-bookings-grid');
-            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">جاري تحضير حجوزاتك...</p>';
-
-            const { data, error } = await supabaseClient
-                .from('slots')
-                .select('*')
-                .eq('booked_by', currentUser.email);
-
-            if (error || !data || data.length === 0) {
-                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">ليس لديكِ حجوزات قائمة حالياً.</p>`;
-                return;
-            }
-
-            grid.innerHTML = '';
-            data.forEach(slot => {
-                grid.innerHTML += `
-                    <div class="card slot-card">
-                        <div>
-                            <div class="slot-header">
-                                <span class="sport-tag">${slot.sport}</span>
-                                <small style="color: green; font-weight: bold;"><i class="fa-solid fa-circle-check"></i> مؤكد</small>
-                            </div>
-                            <h4 style="margin-top: 10px;">${slot.court}</h4>
-                            <div class="slot-time"><i class="fa-regular fa-clock" style="color: var(--primary);"></i> ${slot.day} | ${slot.time}</div>
-                        </div>
-                        <button class="btn btn-danger" style="width: 100%; justify-content: center;" onclick="cancelBooking(${slot.id})">
-                            <i class="fa-solid fa-xmark"></i> إلغاء الحجز
-                        </button>
-                    </div>
-                `;
-            });
-        }
-
-        async function cancelBooking(slotId) {
-            if (confirm('هل أنتِ متأكدة من إلغاء هذا الحجز؟')) {
-                const { error } = await supabaseClient
-                    .from('slots')
-                    .update({ is_booked: false, booked_by: null })
-                    .eq('id', slotId);
-
-                if (!error) {
-                    fetchAndRenderMyBookings();
-                }
-            }
-        }
-
-        async function fetchAndRenderTeams() {
-            const grid = document.getElementById('teams-grid');
-            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">جاري تحميل طلبات الفرق...</p>';
-
-            const { data, error } = await supabaseClient.from('teams').select('*');
-
-            if (error || !data || data.length === 0) {
-                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">لا توجد طلبات فرق حالياً.</p>`;
-                return;
-            }
-
-            grid.innerHTML = '';
-            data.forEach(team => {
-                grid.innerHTML += `
-                    <div class="card">
-                        <div class="slot-header">
-                            <span class="sport-tag">${team.sport}</span>
-                            <small style="color: var(--text-muted);">بواسطة: ${team.author}</small>
-                        </div>
-                        <h4 style="margin: 10px 0;"><i class="fa-regular fa-clock"></i> ${team.time}</h4>
-                        <p style="margin-bottom: 15px; font-size: 0.95rem;">المطلوب: <strong>${team.needed} لاعبات</strong> (انضم ${team.joined})</p>
-                        <button class="btn btn-outline" style="width: 100%; justify-content: center;" onclick="joinTeamAndRedirect(${team.id}, ${team.joined}, '${team.link}')">
-                            <i class="fa-brands fa-whatsapp"></i> الانضمام للمجموعة
-                        </button>
-                    </div>
-                `;
-            });
-        }
-
-        async function joinTeamAndRedirect(teamId, currentJoined, redirectUrl) {
-            if (redirectUrl) {
-                window.open(redirectUrl, '_blank', 'noopener,noreferrer');
-            }
-            
-            await supabaseClient.from('teams').update({ joined: currentJoined + 1 }).eq('id', teamId);
-            fetchAndRenderTeams();
-        }
-
-        async function handleCreateTeam(e) {
-            e.preventDefault();
-            const newTeam = {
-                sport: document.getElementById('team-sport').value,
-                time: document.getElementById('team-time').value,
-                needed: parseInt(document.getElementById('team-count').value),
-                joined: 0,
-                link: document.getElementById('team-link').value,
-                author: currentUser ? currentUser.name : 'طالبة'
-            };
-
-            const { error } = await supabaseClient.from('teams').insert([newTeam]);
-            if (!error) {
-                closeModal('create-team-modal');
-                fetchAndRenderTeams();
-                alert('تم نشر طلب الفريق بنجاح!');
-            } else {
-                alert('حدث خطأ أثناء نشر الطلب: ' + error.message);
-            }
-        }
-
-        async function fetchAndRenderAdminPage() {
-            const tbody = document.getElementById('admin-slots-table');
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">جاري تحميل البيانات...</td></tr>';
-
-            const { data, error } = await supabaseClient.from('slots').select('*');
-            if (error || !data) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">حدث خطأ في تحميل البيانات</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = '';
-            data.forEach(slot => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td><strong>${slot.court}</strong></td>
-                        <td>${slot.day}</td>
-                        <td>${slot.time}</td>
-                        <td>${slot.is_booked ? `<span style="color: red;">محجوز (${slot.booked_by || 'طالبة'})</span>` : `<span style="color: green;">متاح</span>`}</td>
-                        <td>
-                            <button class="btn btn-danger" style="padding: 5px 10px; font-size: 0.8rem;" onclick="deleteSlot(${slot.id})">
-                                <i class="fa-solid fa-trash"></i> حذف
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        async function handleAddSlot(e) {
-            e.preventDefault();
-            
-            const court = document.getElementById('slot-sport').value;
-            const sport = court.split(' - ')[0];
-            const day = document.getElementById('slot-day').value;
-            const time = document.getElementById('slot-time-str').value;
-
-            const newSlot = {
-                sport: sport,
-                court: court,
-                day: day,
-                time: time,
-                is_booked: false
-            };
-
-            try {
-                const { error } = await supabaseClient.from('slots').insert([newSlot]);
-                
-                if (error) {
-                    alert('خطأ أثناء إضافة الوقت: ' + error.message);
-                } else {
-                    alert('تم إضافة الوقت المتاح بنجاح!');
-                    document.getElementById('slot-time-str').value = '';
-                    closeModal('add-slot-modal');
-                    fetchAndRenderAdminPage();
-                    fetchAndRenderSlots();
-                }
-            } catch (err) {
-                alert('حدث خطأ غير متوقع أثناء الاتصال بقاعدة البيانات');
-            }
-        }
-
-        async function deleteSlot(id) {
-            if (confirm('هل تريدين حذف هذا الوقت؟')) {
-                const { error } = await supabaseClient.from('slots').delete().eq('id', id);
-                if (error) {
-                    alert('فشل الحذف: ' + error.message);
-                } else {
-                    fetchAndRenderAdminPage();
-                    fetchAndRenderSlots();
-                }
-            }
-        }
-
-        function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
-        function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
-        function closeModalOnOverlay(e, modalId) {
-            if (e.target.id === modalId) closeModal(modalId);
-        }
-    </script>
 </body>
 </html>
