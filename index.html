@@ -82,7 +82,7 @@
         .modal-content { background: var(--card-bg); padding: 2rem; border-radius: var(--radius); width: 90%; max-width: 500px; box-shadow: var(--shadow); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
 
-        .table-responsive { overflow-x: auto; background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); }
+        .table-responsive { overflow-x: auto; background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 2rem; }
         table { width: 100%; border-collapse: collapse; text-align: right; }
         th, td { padding: 1rem; border-bottom: 1px solid var(--border-color); }
         th { background-color: #F9FBFB; color: var(--primary); }
@@ -156,9 +156,6 @@
                     <label><i class="fa-solid fa-filter"></i> الرياضة:</label>
                     <select id="filter-sport" onchange="fetchAndRenderSlots()">
                         <option value="all">جميع الرياضات</option>
-                        <option value="تنس">كرة المضرب (تنس)</option>
-                        <option value="كرة سلة">كرة السلة</option>
-                        <option value="كرة طائرة">كرة الطائرة</option>
                     </select>
                 </div>
                 <div class="filter-group">
@@ -197,10 +194,30 @@
         <section id="admin-section" class="page-section">
             <div class="section-header">
                 <h2 class="section-title"><i class="fa-solid fa-sliders"></i> لوحة إدارة النادي</h2>
-                <button class="btn" onclick="openModal('add-slot-modal')"><i class="fa-solid fa-calendar-plus"></i> إضافة وقت متاح جديد</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-outline" onclick="openModal('add-sport-modal')"><i class="fa-solid fa-trophy"></i> إضافة رياضة جديدة</button>
+                    <button class="btn" onclick="openModal('add-slot-modal')"><i class="fa-solid fa-calendar-plus"></i> إضافة وقت متاح</button>
+                </div>
             </div>
+
+            <!-- جدول إدارة أنواع الرياضات -->
             <div class="table-responsive">
-                <h3 style="padding: 1rem; color: var(--primary);">إدارة الأوقات والملاعب المتاحة</h3>
+                <h3 style="padding: 1rem; color: var(--primary);"><i class="fa-solid fa-list"></i> إدارة الرياضات المتاحة</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>اسم الرياضة</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-sports-table"></tbody>
+                </table>
+            </div>
+
+            <!-- جدول إدارة الأوقات والملاعب -->
+            <div class="table-responsive">
+                <h3 style="padding: 1rem; color: var(--primary);"><i class="fa-solid fa-clock"></i> إدارة الأوقات والملاعب المتاحة</h3>
                 <table>
                     <thead>
                         <tr>
@@ -217,6 +234,23 @@
         </section>
     </main>
 
+    <!-- Modal إضافة رياضة جديدة -->
+    <div class="modal" id="add-sport-modal" onclick="closeModalOnOverlay(event, 'add-sport-modal')">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>إضافة نوع رياضة جديد</h3>
+                <i class="fa-solid fa-xmark" style="cursor: pointer;" onclick="closeModal('add-sport-modal')"></i>
+            </div>
+            <form onsubmit="handleAddSport(event)">
+                <div class="form-group">
+                    <label>اسم الرياضة الجديدة</label>
+                    <input type="text" id="new-sport-name" placeholder="مثال: كرة القدم، الباديل..." required>
+                </div>
+                <button type="submit" class="btn" style="width: 100%; justify-content: center;">حفظ الرياضة</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal إنشاء طلب فريق -->
     <div class="modal" id="create-team-modal" onclick="closeModalOnOverlay(event, 'create-team-modal')">
         <div class="modal-content">
@@ -227,11 +261,7 @@
             <form onsubmit="handleCreateTeam(event)">
                 <div class="form-group">
                     <label>نوع الرياضة</label>
-                    <select id="team-sport" required>
-                        <option value="كرة سلة">كرة السلة</option>
-                        <option value="كرة طائرة">كرة الطائرة</option>
-                        <option value="تنس">كرة المضرب (تنس)</option>
-                    </select>
+                    <select id="team-sport" required></select>
                 </div>
                 <div class="form-group">
                     <label>اليوم والوقت المقترح</label>
@@ -259,13 +289,11 @@
             </div>
             <form onsubmit="handleAddSlot(event)">
                 <div class="form-group">
-                    <label>اسم الملعب / الرياضة</label>
-                    <select id="slot-sport" required>
-                        <option value="كرة سلة - ملعب A">كرة سلة - ملعب A</option>
-                        <option value="كرة طائرة - الملعب الرئيسي">كرة طائرة - الملعب الرئيسي</option>
-                        <option value="تنس - ملعب 1">تنس - ملعب 1</option>
-                        <option value="تنس - ملعب 2">تنس - ملعب 2</option>
-                    </select>
+                    <label>الرياضة والملعب</label>
+                    <div style="display: flex; gap: 10px;">
+                        <select id="slot-sport-select" style="flex: 1;" required></select>
+                        <input type="text" id="slot-court-name" placeholder="اسم الملعب (مثال: ملعب 1)" style="flex: 1;" required>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>اليوم</label>
@@ -296,16 +324,11 @@
             <form onsubmit="handleUpdateSlot(event)">
                 <input type="hidden" id="edit-slot-id">
                 <div class="form-group">
-                    <label>اسم الملعب / الرياضة</label>
-
-                    <select id="edit-slot-sport" required>
-                        <option value="كرة سلة - ملعب A">كرة سلة - ملعب A</option>
-                        <option value="كرة طائرة - الملعب الرئيسي">كرة طائرة - الملعب الرئيسي</option>
-
-                        <option value="تنس - ملعب 1">تنس - ملعب 1</option>
-                        <option value="تنس - ملعب 2">تنس - ملعب 2</option>
-
-                    </select>
+                    <label>الرياضة والملعب</label>
+                    <div style="display: flex; gap: 10px;">
+                        <select id="edit-slot-sport-select" style="flex: 1;" required></select>
+                        <input type="text" id="edit-slot-court-name" style="flex: 1;" required>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>اليوم</label>
@@ -331,7 +354,7 @@
     </footer>
 
     <script>
-        const SUPABASE_URL = "https://milvueldmckhgyjngviw.supabase.co";"; 
+        const SUPABASE_URL = "https://milvueldmckhgyjngviw.supabase.co"; 
         const SUPABASE_ANON_KEY = "sb_publishable_AwrrvUEr1vhCX4TWKPNLhw_uxFU7b-S"; 
         
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -339,6 +362,85 @@
         let currentUser = null;
         let isSignupMode = false;
         let adminSlotsData = []; 
+        let availableSportsData = [];
+
+        // تحميل قائمة الرياضات ديناميكياً
+        async function fetchSports() {
+            const { data, error } = await supabaseClient.from('sports').select('*');
+            if (error || !data || data.length === 0) {
+                availableSportsData = [{ id: 1, name: 'كرة سلة' }, { id: 2, name: 'كرة طائرة' }, { id: 3, name: 'تنس' }];
+            } else {
+                availableSportsData = data;
+            }
+
+            populateSportsDropdowns();
+        }
+
+        function populateSportsDropdowns() {
+            const dropdowns = ['filter-sport', 'team-sport', 'slot-sport-select', 'edit-slot-sport-select'];
+            
+            dropdowns.forEach(id => {
+                const select = document.getElementById(id);
+                if (!select) return;
+                
+                let html = id === 'filter-sport' ? '<option value="all">جميع الرياضات</option>' : '';
+                availableSportsData.forEach(sport => {
+                    html += `<option value="${sport.name}">${sport.name}</option>`;
+                });
+                select.innerHTML = html;
+            });
+        }
+
+        async function handleAddSport(e) {
+            e.preventDefault();
+            const sportName = document.getElementById('new-sport-name').value.trim();
+
+            if (!sportName) return;
+
+            const { error } = await supabaseClient.from('sports').insert([{ name: sportName }]);
+
+            if (error) {
+                alert('حدث خطأ أثناء إضافة الرياضة: ' + error.message);
+            } else {
+                alert('تمت إضافة الرياضة بنجاح!');
+                document.getElementById('new-sport-name').value = '';
+                closeModal('add-sport-modal');
+                await fetchSports();
+                fetchAndRenderAdminSportsTable();
+            }
+        }
+
+        async function fetchAndRenderAdminSportsTable() {
+            const tbody = document.getElementById('admin-sports-table');
+            if (!tbody) return;
+
+            tbody.innerHTML = '';
+            availableSportsData.forEach((sport, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td><strong>${sport.name}</strong></td>
+                        <td>
+                            <button class="btn btn-danger" style="padding: 5px 10px; font-size: 0.8rem;" onclick="deleteSport(${sport.id})">
+                                <i class="fa-solid fa-trash"></i> حذف
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function deleteSport(id) {
+            if (confirm('هل تريدين حذف هذه الرياضة؟')) {
+                const { error } = await supabaseClient.from('sports').delete().eq('id', id);
+                if (!error) {
+                    await fetchSports();
+                    fetchAndRenderAdminSportsTable();
+                } else {
+                    alert('فشل الحذف: ' + error.message);
+                }
+            }
+        }
 
         function toggleAuthMode() {
             isSignupMode = !isSignupMode;
@@ -391,6 +493,7 @@
                 document.getElementById('user-role-badge').innerText = isAdmin ? 'إدارة النادي' : 'طالبة';
                 document.getElementById('admin-link').style.display = isAdmin ? 'block' : 'none';
 
+                await fetchSports();
                 fetchAndRenderSlots();
                 fetchAndRenderTeams();
                 switchTab('booking');
@@ -586,6 +689,8 @@
         }
 
         async function fetchAndRenderAdminPage() {
+            fetchAndRenderAdminSportsTable();
+
             const tbody = document.getElementById('admin-slots-table');
             tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">جاري تحميل البيانات...</td></tr>';
 
@@ -623,8 +728,9 @@
         async function handleAddSlot(e) {
             e.preventDefault();
             
-            const court = document.getElementById('slot-sport').value;
-            const sport = court.split(' - ')[0];
+            const sport = document.getElementById('slot-sport-select').value;
+            const courtName = document.getElementById('slot-court-name').value.trim();
+            const court = `${sport} - ${courtName}`;
             const day = document.getElementById('slot-day').value;
             const time = document.getElementById('slot-time-str').value;
 
@@ -644,6 +750,7 @@
                 } else {
                     alert('تم إضافة الوقت المتاح بنجاح!');
                     document.getElementById('slot-time-str').value = '';
+                    document.getElementById('slot-court-name').value = '';
                     closeModal('add-slot-modal');
                     fetchAndRenderAdminPage();
                     fetchAndRenderSlots();
@@ -661,12 +768,8 @@
             }
 
             document.getElementById('edit-slot-id').value = slot.id;
-            
-            const sportSelect = document.getElementById('edit-slot-sport');
-            if (sportSelect.querySelector(`option[value="${slot.court}"]`)) {
-                sportSelect.value = slot.court;
-            }
-
+            document.getElementById('edit-slot-sport-select').value = slot.sport || availableSportsData[0]?.name;
+            document.getElementById('edit-slot-court-name').value = slot.court.replace(`${slot.sport} - `, '');
             document.getElementById('edit-slot-day').value = slot.day;
             document.getElementById('edit-slot-time-str').value = slot.time;
 
@@ -677,8 +780,9 @@
             e.preventDefault();
 
             const slotId = document.getElementById('edit-slot-id').value;
-            const court = document.getElementById('edit-slot-sport').value;
-            const sport = court.split(' - ')[0];
+            const sport = document.getElementById('edit-slot-sport-select').value;
+            const courtName = document.getElementById('edit-slot-court-name').value.trim();
+            const court = `${sport} - ${courtName}`;
             const day = document.getElementById('edit-slot-day').value;
             const time = document.getElementById('edit-slot-time-str').value;
 
