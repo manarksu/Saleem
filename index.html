@@ -717,22 +717,35 @@
             });
         }
 
-        async function handleAddSlot(e) {
-            e.preventDefault();
-            
-            const sport = document.getElementById('slot-sport-select').value;
-            const courtName = document.getElementById('slot-court-name').value.trim();
-            const court = `${sport} - ${courtName}`;
-            const day = document.getElementById('slot-day').value;
-            const time = document.getElementById('slot-time-str').value;
+       // إضافة رياضة جديدة مباشرة من لوحة التحكم في الموقع
+async function handleAddSport(e) {
+    e.preventDefault();
+    const sportName = document.getElementById('new-sport-name').value.trim();
 
-            const newSlot = {
-                sport: sport,
-                court: court,
-                day: day,
-                time: time,
-                is_booked: false
-            };
+    if (!sportName) return;
+
+    // إضافة سجل رياضة مبدئي في جدول slots من واجهة الموقع مباشرة
+    const { error } = await supabaseClient.from('slots').insert([{
+        sport: sportName,
+        court: `${sportName} - الملعب الرئيسي`,
+        day: 'الأحد',
+        time: 'متاح للجدولة',
+        is_booked: false
+    }]);
+
+    if (error) {
+        alert('حدث خطأ أثناء إضافة الرياضة: ' + error.message);
+    } else {
+        alert('تمت إضافة الرياضة وتحديث القوائم في الموقع بنجاح!');
+        document.getElementById('new-sport-name').value = '';
+        closeModal('add-sport-modal');
+        
+        // إعادة تحديث القوائم ديناميكياً في الصفحة فوراً
+        await fetchSports();
+        fetchAndRenderAdminSportsTable();
+        fetchAndRenderSlots();
+    }
+}
 
             try {
                 const { error } = await supabaseClient.from('slots').insert([newSlot]);
