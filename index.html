@@ -200,14 +200,15 @@
                 </div>
             </div>
 
-            <!-- جدول إدارة الرياضات المتاحة (مستخرج من slots) -->
+            <!-- جدول إدارة الرياضات المتاحة -->
             <div class="table-responsive">
-                <h3 style="padding: 1rem; color: var(--primary);"><i class="fa-solid fa-list"></i> الرياضات المسجلة في النظام</h3>
+                <h3 style="padding: 1rem; color: var(--primary);"><i class="fa-solid fa-list"></i> إدارة أنواع الرياضات المتاحة</h3>
                 <table>
                     <thead>
                         <tr>
                             <th>#</th>
                             <th>اسم الرياضة</th>
+                            <th>الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="admin-sports-table"></tbody>
@@ -363,15 +364,14 @@
         let adminSlotsData = []; 
         let availableSportsData = [];
 
-        // جلب الرياضات المتاحة من جدول slots المتاحة بدون الاتصال بجدول sports المفقود
+        // 1. جلب الرياضات المتاحة من جدول sports
         async function fetchSports() {
-            const { data, error } = await supabaseClient.from('slots').select('sport');
+            const { data, error } = await supabaseClient.from('sports').select('*');
             
             if (error || !data || data.length === 0) {
-                availableSportsData = [{ name: 'كرة سلة' }, { name: 'كرة طائرة' }, { name: 'تنس' }];
+                availableSportsData = [{ id: 1, name: 'كرة سلة' }, { id: 2, name: 'كرة طائرة' }, { id: 3, name: 'تنس' }];
             } else {
-                const uniqueSports = [...new Set(data.map(item => item.sport).filter(Boolean))];
-                availableSportsData = uniqueSports.map(sportName => ({ name: sportName }));
+                availableSportsData = data;
             }
 
             populateSportsDropdowns();
@@ -392,33 +392,43 @@
             });
         }
 
-        // إضافة رياضة جديدة مباشرة إلى slots عبر إضافة ملعب مبدئي
+        // 2. إضافة رياضة جديدة إلى جدول sports مباشرة من واجهة الموقع
         async function handleAddSport(e) {
             e.preventDefault();
             const sportName = document.getElementById('new-sport-name').value.trim();
 
             if (!sportName) return;
 
-            const { error } = await supabaseClient.from('slots').insert([{
-                sport: sportName,
-                court: `${sportName} - ملعب الرئيسي`,
-                day: 'الأحد',
-                time: 'متاح للجدولة',
-                is_booked: false
-            }]);
+            const { error } = await supabaseClient.from('sports').insert([{ name: sportName }]);
 
             if (error) {
                 alert('حدث خطأ أثناء إضافة الرياضة: ' + error.message);
             } else {
-                alert('تمت إضافة الرياضة وتوثيقها بنجاح!');
+                alert('تمت إضافة الرياضة بنجاح!');
                 document.getElementById('new-sport-name').value = '';
                 closeModal('add-sport-modal');
                 await fetchSports();
                 fetchAndRenderAdminSportsTable();
-                fetchAndRenderSlots();
             }
         }
 
+        // 3. حذف رياضة من جدول sports بنقرة زر من الموقع
+        async function deleteSport(id, sportName) {
+            if (confirm(`هل أنتِ متأكدة من حذف رياضة (${sportName})؟`)) {
+                const { error } = await supabaseClient.from('sports').delete().eq('id', id);
+
+                if (error) {
+                    alert('تعذر حذف الرياضة: ' + error.message);
+                } else {
+                    alert('تم حذف الرياضة بنجاح!');
+                    await fetchSports();
+                    fetchAndRenderAdminSportsTable();
+                    fetchAndRenderSlots();
+                }
+            }
+        }
+
+        // 4. عرض جدول الرياضات مع زر الحذف والإضافة
         function fetchAndRenderAdminSportsTable() {
             const tbody = document.getElementById('admin-sports-table');
             if (!tbody) return;
@@ -429,6 +439,11 @@
                     <tr>
                         <td>${index + 1}</td>
                         <td><strong>${sport.name}</strong></td>
+                        <td>
+                            <button class="btn btn-danger" style="padding: 4px 10px; font-size: 0.8rem;" onclick="deleteSport(${sport.id}, '${sport.name}')">
+                                <i class="fa-solid fa-trash"></i> حذف
+                            </button>
+                        </td>
                     </tr>
                 `;
             });
@@ -717,35 +732,22 @@
             });
         }
 
-       // إضافة رياضة جديدة مباشرة من لوحة التحكم في الموقع
-async function handleAddSport(e) {
-    e.preventDefault();
-    const sportName = document.getElementById('new-sport-name').value.trim();
+        async function handleAddSlot(e) {
+            e.preventDefault();
+            
+            const sport = document.getElementById('slot-sport-select').value;
+            const courtName = document.getElementById('slot-court-name').value.trim();
+            const court = `${sport} - ${courtName}`;
+            const day = document.getElementById('slot-day').value;
+            const time = document.getElementById('slot-time-str').value;
 
-    if (!sportName) return;
-
-    // إضافة سجل رياضة مبدئي في جدول slots من واجهة الموقع مباشرة
-    const { error } = await supabaseClient.from('slots').insert([{
-        sport: sportName,
-        court: `${sportName} - الملعب الرئيسي`,
-        day: 'الأحد',
-        time: 'متاح للجدولة',
-        is_booked: false
-    }]);
-
-    if (error) {
-        alert('حدث خطأ أثناء إضافة الرياضة: ' + error.message);
-    } else {
-        alert('تمت إضافة الرياضة وتحديث القوائم في الموقع بنجاح!');
-        document.getElementById('new-sport-name').value = '';
-        closeModal('add-sport-modal');
-        
-        // إعادة تحديث القوائم ديناميكياً في الصفحة فوراً
-        await fetchSports();
-        fetchAndRenderAdminSportsTable();
-        fetchAndRenderSlots();
-    }
-}
+            const newSlot = {
+                sport: sport,
+                court: court,
+                day: day,
+                time: time,
+                is_booked: false
+            };
 
             try {
                 const { error } = await supabaseClient.from('slots').insert([newSlot]);
