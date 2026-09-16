@@ -200,15 +200,14 @@
                 </div>
             </div>
 
-            <!-- جدول إدارة أنواع الرياضات -->
+            <!-- جدول إدارة الرياضات المتاحة (مستخرج من slots) -->
             <div class="table-responsive">
-                <h3 style="padding: 1rem; color: var(--primary);"><i class="fa-solid fa-list"></i> إدارة الرياضات المتاحة</h3>
+                <h3 style="padding: 1rem; color: var(--primary);"><i class="fa-solid fa-list"></i> الرياضات المسجلة في النظام</h3>
                 <table>
                     <thead>
                         <tr>
                             <th>#</th>
                             <th>اسم الرياضة</th>
-                            <th>الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="admin-sports-table"></tbody>
@@ -244,7 +243,7 @@
             <form onsubmit="handleAddSport(event)">
                 <div class="form-group">
                     <label>اسم الرياضة الجديدة</label>
-                    <input type="text" id="new-sport-name" placeholder="مثال: كرة القدم، بولينغ..." required>
+                    <input type="text" id="new-sport-name" placeholder="مثال: كرة القدم، الباديل..." required>
                 </div>
                 <button type="submit" class="btn" style="width: 100%; justify-content: center;">حفظ الرياضة</button>
             </form>
@@ -364,13 +363,15 @@
         let adminSlotsData = []; 
         let availableSportsData = [];
 
-        // تحميل قائمة الرياضات ديناميكياً
+        // جلب الرياضات المتاحة من جدول slots المتاحة بدون الاتصال بجدول sports المفقود
         async function fetchSports() {
-            const { data, error } = await supabaseClient.from('sports').select('*');
+            const { data, error } = await supabaseClient.from('slots').select('sport');
+            
             if (error || !data || data.length === 0) {
-                availableSportsData = [{ id: 1, name: 'كرة سلة' }, { id: 2, name: 'كرة طائرة' }, { id: 3, name: 'تنس' }];
+                availableSportsData = [{ name: 'كرة سلة' }, { name: 'كرة طائرة' }, { name: 'تنس' }];
             } else {
-                availableSportsData = data;
+                const uniqueSports = [...new Set(data.map(item => item.sport).filter(Boolean))];
+                availableSportsData = uniqueSports.map(sportName => ({ name: sportName }));
             }
 
             populateSportsDropdowns();
@@ -391,26 +392,34 @@
             });
         }
 
+        // إضافة رياضة جديدة مباشرة إلى slots عبر إضافة ملعب مبدئي
         async function handleAddSport(e) {
             e.preventDefault();
             const sportName = document.getElementById('new-sport-name').value.trim();
 
             if (!sportName) return;
 
-            const { error } = await supabaseClient.from('sports').insert([{ name: sportName }]);
+            const { error } = await supabaseClient.from('slots').insert([{
+                sport: sportName,
+                court: `${sportName} - ملعب الرئيسي`,
+                day: 'الأحد',
+                time: 'متاح للجدولة',
+                is_booked: false
+            }]);
 
             if (error) {
                 alert('حدث خطأ أثناء إضافة الرياضة: ' + error.message);
             } else {
-                alert('تمت إضافة الرياضة بنجاح!');
+                alert('تمت إضافة الرياضة وتوثيقها بنجاح!');
                 document.getElementById('new-sport-name').value = '';
                 closeModal('add-sport-modal');
                 await fetchSports();
                 fetchAndRenderAdminSportsTable();
+                fetchAndRenderSlots();
             }
         }
 
-        async function fetchAndRenderAdminSportsTable() {
+        function fetchAndRenderAdminSportsTable() {
             const tbody = document.getElementById('admin-sports-table');
             if (!tbody) return;
 
@@ -420,26 +429,9 @@
                     <tr>
                         <td>${index + 1}</td>
                         <td><strong>${sport.name}</strong></td>
-                        <td>
-                            <button class="btn btn-danger" style="padding: 5px 10px; font-size: 0.8rem;" onclick="deleteSport(${sport.id})">
-                                <i class="fa-solid fa-trash"></i> حذف
-                            </button>
-                        </td>
                     </tr>
                 `;
             });
-        }
-
-        async function deleteSport(id) {
-            if (confirm('هل تريدين حذف هذه الرياضة؟')) {
-                const { error } = await supabaseClient.from('sports').delete().eq('id', id);
-                if (!error) {
-                    await fetchSports();
-                    fetchAndRenderAdminSportsTable();
-                } else {
-                    alert('فشل الحذف: ' + error.message);
-                }
-            }
         }
 
         function toggleAuthMode() {
