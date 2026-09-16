@@ -392,35 +392,53 @@
             });
         }
 
-        // 2. إضافة رياضة جديدة إلى جدول sports مباشرة من واجهة الموقع
+        // 2. إضافة رياضة جديدة وإنشاء ملحق افتراضي لها في slots لتظهر فوراً
         async function handleAddSport(e) {
             e.preventDefault();
             const sportName = document.getElementById('new-sport-name').value.trim();
 
             if (!sportName) return;
 
-            const { error } = await supabaseClient.from('sports').insert([{ name: sportName }]);
+            // إدخال الرياضة في جدول sports
+            const { error: sportError } = await supabaseClient.from('sports').insert([{ name: sportName }]);
 
-            if (error) {
-                alert('حدث خطأ أثناء إضافة الرياضة: ' + error.message);
-            } else {
-                alert('تمت إضافة الرياضة بنجاح!');
-                document.getElementById('new-sport-name').value = '';
-                closeModal('add-sport-modal');
-                await fetchSports();
-                fetchAndRenderAdminSportsTable();
+            if (sportError) {
+                alert('حدث خطأ أثناء إضافة الرياضة: ' + sportError.message);
+                return;
             }
+
+            // الربط التلقائي: إنشاء ملعب ووقت افتراضي في slots حتى تظهر في صفحة الأوقات فوراً
+            await supabaseClient.from('slots').insert([{
+                sport: sportName,
+                court: `${sportName} - الملعب الرئيسي`,
+                day: 'الأحد',
+                time: '4:00 م - 5:00 م',
+                is_booked: false
+            }]);
+
+            alert('تمت إضافة الرياضة وإنشاء وقت متاح لها بنجاح!');
+            document.getElementById('new-sport-name').value = '';
+            closeModal('add-sport-modal');
+            
+            // تحديث كافة القوائم والجداول والشاشات فوراً
+            await fetchSports();
+            fetchAndRenderAdminSportsTable();
+            fetchAndRenderSlots();
         }
 
-        // 3. حذف رياضة من جدول sports بنقرة زر من الموقع
+        // 3. حذف رياضة وحذف الملاعب التابعة لها تلقائياً
         async function deleteSport(id, sportName) {
-            if (confirm(`هل أنتِ متأكدة من حذف رياضة (${sportName})؟`)) {
+            if (confirm(`هل أنتِ متأكدة من حذف رياضة (${sportName}) وكل أوقاتها المتاحة؟`)) {
+                // 1. حذف الملاعب والأوقات المرتكزة على هذه الرياضة
+                await supabaseClient.from('slots').delete().eq('sport', sportName);
+
+                // 2. حذف الرياضة نفسها من جدول sports
                 const { error } = await supabaseClient.from('sports').delete().eq('id', id);
 
                 if (error) {
                     alert('تعذر حذف الرياضة: ' + error.message);
                 } else {
-                    alert('تم حذف الرياضة بنجاح!');
+                    alert('تم حذف الرياضة بجميع أوقاتها بنجاح!');
                     await fetchSports();
                     fetchAndRenderAdminSportsTable();
                     fetchAndRenderSlots();
@@ -428,7 +446,7 @@
             }
         }
 
-        // 4. عرض جدول الرياضات مع زر الحذف والإضافة
+        // 4. عرض جدول الرياضات مع زر الحذف للإدارة
         function fetchAndRenderAdminSportsTable() {
             const tbody = document.getElementById('admin-sports-table');
             if (!tbody) return;
